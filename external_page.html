@@ -3,7 +3,32 @@
     <head>
         <body>
         
-            <div id="consent">
+            <head>
+                <style>
+                  .map {
+                    outline: 0;
+                    cursor: context-menu;
+                       }
+                </style>
+              </head>
+              
+              
+              <script>
+                var correct = 0
+                function correct_function() {
+                  correct = 1;
+                }
+              </script>
+              
+              <img src="img/01_practice_present.jpg" usemap="#image-map">
+              
+              <map name="image-map">
+                  <area class="map" onclick="correct_function()" href="#" coords="856,520,866,400,856,357,885,284,903,228,902,160,862,135,754,140,706,155,694,182,691,236,713,241,736,228,748,245,763,286,776,305,780,326,774,342,788,346,796,348,807,360,812,375,790,392,788,408,791,434,793,451,796,466,797,488,798,507,802,517" shape="poly">
+              </map>
+              
+              
+              
+            <!-- <div id="consent">
                 <p>
                     This is a demo experiment, with this minimal consent form being loaded
                     as an external html document. To continue, click the checkbox below
@@ -14,7 +39,7 @@
                     I agree to take part in this study.
                 </p>
                 <button type="button" id="start">Start Experiment</button>
-            </div>
+            </div> -->
 
         </body>
     </head>
