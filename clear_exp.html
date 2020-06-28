@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My experiment</title>
+        <script src="jspsych-6.1.0/jspsych.js"></script>
+        <script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
+        <script src="jspsych-6.1.0/plugins/jspsych-yuval-template.js"></script>
+        <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+    </head>
+    <body></body>
+    <script>
+
+    var hello_trial = {
+        type: 'jspsych-yuval-template'
+        };
+
+    var trial2 = {
+        type: 'image-keyboard-response',
+        stimulus: 'img/blue.png',
+        stimulus_duration: 500,
+        trial_duration: 2000,
+        choices: ['e', 'i'],
+        prompt: "<p>Is this person happy or sad? Press 'e' for happy and 'i' for sad.</p>",
+        response_ends_trial: false
+    };
+
+    
+
+    jsPsych.init({
+        timeline: [hello_trial, trial2]
+    })
+
+    </script>
+</html>
