@@ -1,8 +1,18 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <script>
+            var correct = 0
+            function correct_function() {
+              correct = 1;
+              document.getElementById('output').innerHTML = correct;
+            }
+            
+
+          </script>
+    </head>
         <body>
-        
+            <p id="output"></p>
             <head>
                 <style>
                   .map {
@@ -13,13 +23,7 @@
               </head>
               
               
-              <script>
-                var correct = 0
-                function correct_function() {
-                  correct = 1;
-                }
-                document.getElementById("is_correct").innerHTML=correct;
-              </script>
+              
               
               <img src="img/01_practice_present.jpg" usemap="#image-map">
               
@@ -41,7 +45,7 @@
                // </p>
                // <button type="button" id="start">Start Experiment</button>
             </div> -->
-            <a id="is_correct" href = simple_consent.html></a>      
+                 
         </body>
-    </head>
+    
 </html>
