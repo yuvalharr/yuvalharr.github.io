@@ -187,6 +187,7 @@ jsPsych.plugins["yuval-html-button-response"] = (function() {
         "rt": response.rt,
         "stimulus": trial.stimulus,
         "button_pressed": response.button
+        //"correct": 
       };
 
       // clear the display

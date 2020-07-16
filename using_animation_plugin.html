@@ -26,7 +26,7 @@ function replicate(arr, times) { // function to help make array of many 'L's and
      return res;
 }
 
-var num_img_pairs = 6,
+var num_img_pairs = 5,
     absent_images = [],
     present_images = [],
     detection_images = [],
@@ -261,15 +261,16 @@ var practice_procedure = {
         {
             type: 'html-keyboard-response',
             timeline: inPracticeText,
-            timing_post_trial: 400
+            timing_post_trial: 1200
         },
         {
             type: 'yuval-animation',
             stimuli: ['img/070_L_filler_absent.jpg', 'img/070_L_filler_present.jpg'],
             choices: [32],
             sequence_reps: 14,
-            frame_isi: 240,
+            frame_isi: 80,
             frame_time: 240,
+            timing_post_trial: 1200,
             prompt: '<p style="font-size: 28px;">Press the <b>space bar</b> quickly after finding the changing object</p>',
             on_start: function(){
                 document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
@@ -308,7 +309,7 @@ var practice_procedure = {
         {
             type: 'html-keyboard-response',
             timeline: afterPracticeText,
-            timing_post_trial: 400
+            
         }
 
     ]
@@ -338,14 +339,15 @@ var trial_procedure = {
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
             trial_duration: 1500,
-            prompt: '<p style="font-size: 36px;">1</p>'
+            prompt: '<p style="font-size: 36px;">1</p>',
+            post_trial_gap: 2000
         },
         {
             type: 'yuval-animation',
             stimuli: jsPsych.timelineVariable('stimuli'),
             choices: [32],
             sequence_reps: 14,
-            frame_isi: 240,
+            frame_isi: 80,
             frame_time: 240,
             on_finish: function(){
                 document.querySelector('#cursor-toggle').remove()
