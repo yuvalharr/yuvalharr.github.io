@@ -4,16 +4,17 @@
     <script src="jspsych-6.1.0/jspsych.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-image-keyboard-response.js"></script>
-    <script src="jspsych-6.1.0/plugins/jspsych-yuval-animation.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-image-button-response.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
-    <script src="jspsych-6.1.0/plugins/jspsych-yuval-html-button-response.js"></script>
-    <script src="jspsych-6.1.0/plugins/jspsych-yuval-html.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-resize.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-yuval-animation.js"></script>
     <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
 </head>
-<body style="background-color:ghostwhite;"></body> 
-<script>
+<body></body>
 
+<script>
+document.body.style.backgroundColor = "ghostwhite";
 
 // YH- upload images 
 function replicate(arr, times) { // function to help make array of many 'L's and 'R's 
@@ -25,41 +26,294 @@ function replicate(arr, times) { // function to help make array of many 'L's and
      return res;
 }
 
-var num_img_pairs = 80,
+var num_img_pairs = 6,
     absent_images = [],
     present_images = [],
+    detection_images = [],
     L_R_array = ['L', 'R'], // L & R array to replicate many times in the next row 
     random_var = replicate(L_R_array, num_img_pairs/2); // make half of the array 'L's and half 'R's
-random_var = jsPsych.randomization.shuffle(random_var); // random_var is now shuffled to assign each trial with L or R couple of images
+    random_var = jsPsych.randomization.shuffle(random_var); // random_var is now shuffled to assign each trial with L or R couple of images
 for (i = 1; i <= num_img_pairs; i++) { //YH- creating two arrays -> one for all 'absent' and one for all 'present' images  -YH
   absent_images.push('img/0' + i + '_' + random_var[i-1] + '_filler_absent' + '.jpg');
   present_images.push('img/0' + i + '_' + random_var[i-1] + '_filler_present' + '.jpg');
+  detection_images.push('detection grids/0' + i + random_var[i-1] + '.jpg')
 }
 
 // YH- stimuli array preperation
 var coupled = [];                  // make 'coupled' array -> each item is an array of coupled (a & b) images
 for(var i=0; i < absent_images.length; i++){
-   coupled.push([absent_images[i], present_images[i]]);
+   coupled.push([absent_images[i], present_images[i], detection_images[i]]);
 }
 coupled = jsPsych.randomization.shuffle(coupled); // shuffle 'coupled' array
 
 for (var i = 0; i < coupled.length; i++) { // create many arrays called animation_sequence_X
-    this["animation_sequence_"+(i+1)] = coupled[i]; // in each array two items that are images a & b
+    this["animation_sequence_"+(i+1)] = coupled[i].slice(0,2); // in each animation_sequence two items that are images a & b
+    this["detection_sequence"+(i+1)] = coupled[i].slice(2); // in each detection sequence one detection image string
 } 
 
 // YH- prepare stimuli for the timeline in an array. each item is {stimuli: animation_sequence_X}
 var timeline_stimuli = []
-var grid_images = ['img/image_part_001.jpg','img/image_part_002.jpg','img/image_part_003.jpg','img/image_part_004.jpg','img/image_part_005.jpg','img/image_part_006.jpg','img/image_part_007.jpg','img/image_part_008.jpg','img/image_part_009.jpg']
 for(var i=1; i <= coupled.length; i++){
-    var str ="animation_sequence_"+ i;
+    var str ="animation_sequence_" + i;
+    var str2 = "detection_sequence" + i;
     var current_anim_seq = eval(str)
-    var current_num = eval(str)[1].substring(4,6) // extracts num digits of current images. 
-    var horizontal_images_array = ['img/01' + '_' + 1 + '.jpg', 'img/01' + '_' + 2+ '.jpg', 'img/01' + '_' + 3+ '.jpg', 'img/01' + '_' + 4+ '.jpg'] // after all images are in the folder '01' should be switched back to current_num - YH
-    timeline_stimuli.push({stimuli: current_anim_seq, detection_image: current_anim_seq[1], horiz_imgs: horizontal_images_array, grid_images: grid_images }
+    var current_detection_seq = eval(str2)
+    timeline_stimuli.push({stimuli: current_anim_seq  , detection_image: current_detection_seq}
                          );
 }
 
 // trial procedure to be repeated for each couple of images
+
+var preCalibInsText = [{
+    stimulus: ["<div class='center'>Welcome to the study!<br> \
+    <p>Your participation will help us investigate human precision and reaction-times.</p>\
+    <p>Please read the instructions carefully.</p>\
+    <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>We will begin by calibrating the experiment \
+      for the size of your screen.</p>\
+      <p>After this short calibration, we will continue with the main task of \
+      this study.</p>\
+      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>First, please adjust your web browser's zoom level to 100%.</p>\
+      <p>We ask you to not change this throughout the whole course of the experiment.</p>\
+      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>For the calibration stage, you will need a credit card.</p>\
+      <p>Don't worry, the credit card will be used just as a size measuring tool.</p>\
+      <p>Any credit card will do.</p>\
+      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>Using your mouse, \
+      you will be asked to adjust the size of an empty box, so that it matches the \
+      size of your credit card.</p>\
+      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>Take your time in doing so, as this measurement\
+      will be used throughout the</p> \
+      <p>study to make sure images are presented to \
+      you in their correct size.</p>\
+      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>Please have a credit card at hand.</p>\
+      <p>Press the space bar to start the calibration stage.</p></div>"],
+    choices: [32]
+  }
+];
+
+var instructionsText = [
+  {
+    stimulus: ["<p style='font-size: 28px;'>We will now continue to the first part out of two in this experiment.</p>\
+    <p align='center'><i>Press the space bar to continue.</i></p>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<p style='font-size: 28px;'>In this part you will be asked to find changing objects within flickering natural indoor scenes.</p>\
+    <p align='center'><i>Press the space bar to continue.</i></p>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>Each time you will be presented with two almost identical images.</p> \
+        <p style='font-size: 28px;'>These images will be rapidly alternating between each other.</p> \
+    <p align='center'><i>Press the space bar to continue.</i></p></div>"
+    ],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>Your goal will be to detect the one difference between these two images.</p> \
+        <p style='font-size: 28px;'>This difference will be an object that is present in one image but not in the other.</p> \
+    <p align='center'><i>Press the space bar to continue.</i></p></div>"
+    ],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>Once you have found the object, please press the space bar as quickly as you can.</p> \
+    <p align='center'><i>Press the space bar to continue.</i></p></div>"
+    ],
+    choices: [32]
+  } ,
+  {
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>You will have 60 seconds for this.</p> \
+    <p style='font-size: 28px;'>If you did not find it in this time, don't worry.</p>\
+    <p align='center'><i>Press the space bar to continue.</i></p></div>"
+    ],
+    choices: [32]
+  } ,
+  {
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>After that you will be asked about the location of the object.</p>\
+        <p style='font-size: 28px;'>If you don't know or unsure, please guess.</p> \
+      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>We will now continue with a short practice before starting the main task.</p>\
+        <p align='center'></i>Press the space bar to continue.</i></p></div>"],
+    choices: [32]
+  }
+  
+];
+
+var inPracticeText = [
+  {
+    stimulus: ["<p style='font-size: 28px;'>That was easy, right?</p>\
+                <p style='font-size: 28px;'>Now let's have another practice. This time it will be a bit more difficult.</p>\
+                <p align='center'><i>Press the space bar to continue.</i></p>"],
+    choices: [32]
+  }
+    
+];
+
+var afterPracticeText = [
+  {
+    stimulus: ["<p style='font-size: 28px;'>Great! You are now ready to continue to the main task.</p>\
+                <p style='font-size: 28px;'>You will now be shown a series of similar trials one after another.</p>\
+                <p style='font-size: 28px;'>It will take about 10-15 minutes until the next break.</p>\
+                <p align='center'><i>Press the space bar when ready.</i></p>"],
+    choices: [32]
+  }
+    
+];
+
+var introduction_procedure = {
+    timeline: [
+        {
+            type: 'fullscreen',
+            fullscreen_mode: true,
+            message: '<p>This experiment has to be performed on full screen mode.</p>\
+            <p>Please do not leave full screen mode at any time throughout the experiment.</p>'
+            
+        },
+        {
+            type: 'html-keyboard-response',
+            timeline: preCalibInsText,
+            timing_post_trial: 400
+        },
+        {
+            type: 'resize',
+            item_width: 3 + 3/8,
+            item_height: 2 + 1/8,
+            prompt: "<p>Click and drag the lower right corner of the box until the box is the same size as a credit card held up to the screen.</p>",
+            pixels_per_unit: 150 // YH - check what to put here
+        },
+        {
+            type: 'html-keyboard-response',
+            timeline: instructionsText,
+            timing_post_trial: 400
+        }
+    ]
+}
+
+
+
+var practice_procedure = {
+    timeline: [
+        {
+            type: 'yuval-animation',
+            stimuli: ['img/074_R_filler_absent.jpg', 'img/074_R_filler_present.jpg'],
+            choices: [32],
+            sequence_reps: 14,
+            frame_isi: 0,
+            frame_time: 500,
+            prompt: '<p style="font-size: 28px;">Press the <b>space bar</b> quickly after finding the changing object</p>',
+            on_start: function(){
+                document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
+            },
+            on_finish: function(){
+                document.querySelector('#cursor-toggle').remove()
+            }
+
+        },
+        {
+            type: 'image-button-response',
+            stimulus: ['detection grids/074R.jpg'],
+            choices: ['1', '2','3','4'],
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>row</b> is the changed item located?</p>',
+            button_html: '<button class="jspsych-btn">%choice%</button>',
+            stimulus_width: '900',
+            margin_horizontal: '50px',
+            margin_vertical: '20px'
+            
+
+        },
+        {
+            type: 'image-button-response',
+            stimulus: ['detection grids/074R.jpg'],
+            choices: ['A', 'B', 'C', 'D'],
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>column</b> is the changed item located?</p>',
+            button_html: '<button class="jspsych-btn">%choice%</button>',
+            stimulus_width: '900',
+            margin_horizontal: '50px',
+            margin_vertical: '20px'
+        },
+        {
+            type: 'html-keyboard-response',
+            timeline: inPracticeText,
+            timing_post_trial: 400
+        },
+        {
+            type: 'yuval-animation',
+            stimuli: ['img/070_L_filler_absent.jpg', 'img/070_L_filler_present.jpg'],
+            choices: [32],
+            sequence_reps: 14,
+            frame_isi: 240,
+            frame_time: 240,
+            prompt: '<p style="font-size: 28px;">Press the <b>space bar</b> quickly after finding the changing object</p>',
+            on_start: function(){
+                document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
+            },
+            on_finish: function(){
+                document.querySelector('#cursor-toggle').remove()
+            }
+
+        },
+        {
+            type: 'image-button-response',
+            stimulus: ['detection grids/070L.jpg'],
+            choices: ['1', '2','3','4'],
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>row</b> is the changed item located?</p>\
+                     <p style="font-size: 24px">If you think there is more than one correct option, press the one that you think is the most correct.</p>\
+                     <p style="font-size: 24px">If you do not know, just guess.</p>',
+            button_html: '<button class="jspsych-btn">%choice%</button>',
+            stimulus_width: '900',
+            margin_horizontal: '50px',
+            margin_vertical: '20px'
+            
+
+        },
+        {
+            type: 'image-button-response',
+            stimulus: ['detection grids/070L.jpg'],
+            choices: ['A', 'B', 'C', 'D'],
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>collumn</b> is the changed item located?</p>\
+                     <p style="font-size: 24px">If you think there is more than one correct option, press the one that you think is the most correct.</p>\
+                     <p style="font-size: 24px">If you do not know, just guess.</p>',
+            button_html: '<button class="jspsych-btn">%choice%</button>',
+            stimulus_width: '900',
+            margin_horizontal: '50px',
+            margin_vertical: '20px'
+        },
+        {
+            type: 'html-keyboard-response',
+            timeline: afterPracticeText,
+            timing_post_trial: 400
+        }
+
+    ]
+}
+
 var trial_procedure = {
     timeline: [
         {
@@ -67,7 +321,10 @@ var trial_procedure = {
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
             trial_duration: 1500,
-            prompt: '<p style="font-size: 36px;">3</p>'
+            prompt: '<p style="font-size: 36px;">3</p>',
+            on_start: function(){
+                document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
+            },
         },
         {
             type: 'html-keyboard-response',
@@ -84,64 +341,44 @@ var trial_procedure = {
             prompt: '<p style="font-size: 36px;">1</p>'
         },
         {
-            type: 'animation',
+            type: 'yuval-animation',
             stimuli: jsPsych.timelineVariable('stimuli'),
             choices: [32],
-            sequence_reps: 5,
-            frame_isi: 200,
-            frame_time: 1000
-        },
-        {
-            type: 'yuval-html-button-response',
-            stimulus: [],
-            choices: jsPsych.timelineVariable('grid_images'),
-            button_html: '<div class="wrapper"><div><img src=%choice%></div></div>',
-            prompt: '<p style="font-size: 30px;">Where is the item located?</p>'
-        },
-        {
-            type: 'yuval-html',
-            stimulus: []
-            
-        },
-        /*{
-            type: 'html-button-response',
-            stimulus: [],
-            choices: jsPsych.timelineVariable('horiz_imgs'),
-            button_html: '<div class="grid"><div><img src=%choice%></div></div>',
-            prompt: "<p>Is this activity healthy or unhealthy?</p>"
-        }, */
-        {
-            type: 'image-button-response',
-            stimulus: jsPsych.timelineVariable('detection_image'),
-            choices: ['A', 'B', 'C', 'D'],
-            prompt: "<p>What collumn is it?</p>",
-            margin_horizontal: '16px',
-            button_html: '<button class="jspsych-btn-yuval">%choice%</button>'
+            sequence_reps: 14,
+            frame_isi: 240,
+            frame_time: 240,
+            on_finish: function(){
+                document.querySelector('#cursor-toggle').remove()
+            }
         },
         {
             type: 'image-button-response',
             stimulus: jsPsych.timelineVariable('detection_image'),
             choices: ['1', '2','3','4'],
-            prompt: "<p>What row is it?</p>",
-            margin_vertical: '80px',
-            margin_horizontal: '0px'
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>row</b> is the changed item located?</p>',
+            button_html: '<button class="jspsych-btn">%choice%</button>',
+            stimulus_width: '900',
+            margin_horizontal: '50px',
+            margin_vertical: '20px'
+
+        },
+        {
+            type: 'image-button-response',
+            stimulus: jsPsych.timelineVariable('detection_image'),
+            choices: ['A', 'B', 'C', 'D'],
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>column</b> is the changed item located?</p>',
+            button_html: '<button class="jspsych-btn">%choice%</button>',
+            stimulus_width: '900',
+            margin_horizontal: '50px',
+            margin_vertical: '20px'
         },
     ],
     timeline_variables: timeline_stimuli
 }
 
-/* var animation_trial = {
-    type: 'animation',
-    sequence_reps: 5,
-    frame_isi: 250,
-    timeline: [
-        {stimuli: animation_sequence_1},
-        {stimuli: animation_sequence_2}
-    ]
-}; */
 
 jsPsych.init({
-    timeline: [trial_procedure],
+    timeline: [introduction_procedure,practice_procedure, trial_procedure],
     on_finish: function() {
       jsPsych.data.displayData();
     }
