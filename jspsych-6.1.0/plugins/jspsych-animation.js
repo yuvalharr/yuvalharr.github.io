@@ -5,15 +5,15 @@
  * documentation: docs.jspsych.org
  */
 
-jsPsych.plugins["animation"] = (function() {
+jsPsych.plugins["yuval-animation"] = (function() {
 
   var plugin = {};
 
   /* YH - registers 'stimuli' for later loading. 'animation' is name of trial and 'image' type of file YH */
-  jsPsych.pluginAPI.registerPreload('animation', 'stimuli', 'image');
+  jsPsych.pluginAPI.registerPreload('yuval-animation', 'stimuli', 'image');
 
   plugin.info = {
-    name: 'animation',
+    name: 'yuval-animation',
     description: '',
     parameters: {
       stimuli: {
@@ -67,11 +67,11 @@ jsPsych.plugins["animation"] = (function() {
     var responses = [];
     var current_stim = "";
 
-    //show_next_frame(); // Trying to make image appear first with no problems
+    show_next_frame(); // Trying to make image appear first with no problems
 
     var animate_interval = setInterval(function() { /* YH- setInterval-> executes function every interval */
       var showImage = true;
-       // clear everything
+      display_element.innerHTML = ''; // clear everything
       animate_frame++;
       if (animate_frame == trial.stimuli.length) { // YH - if all stims are done showing -> 
         animate_frame = 0;                         // turn animate_frame back to 0
@@ -90,12 +90,7 @@ jsPsych.plugins["animation"] = (function() {
     function show_next_frame() {
       // show image
       // YH - display the image that is in the [animate_frame] spot in the 'stimuli' array 
-      if(animate_frame == 0){
-        display_element.innerHTML = '<img src="'+trial.stimuli[animate_frame]+'" id="jspsych-animation-image"></img>';
-        }
-        else{
-        document.getElementById("jspsych-animation-image").src = trial.stimuli[animate_frame];	
-      }
+      display_element.innerHTML = '<img src="'+trial.stimuli[animate_frame]+'" id="jspsych-yuval-animation-image"></img>';
 
       current_stim = trial.stimuli[animate_frame];
 
@@ -111,7 +106,7 @@ jsPsych.plugins["animation"] = (function() {
 
       if (trial.frame_isi > 0) { // YH - if there is frame_isi -> hide image at frame_time and write the blanks also into the data
         jsPsych.pluginAPI.setTimeout(function() { // YH -executes this function after waiting for trial.frame_time (below)
-          display_element.querySelector('#jspsych-animation-image').style.visibility = 'hidden';
+          display_element.querySelector('#jspsych-yuval-animation-image').style.visibility = 'hidden';
           current_stim = 'blank';
           // record when blank image was shown
           animation_sequence.push({
@@ -132,7 +127,7 @@ jsPsych.plugins["animation"] = (function() {
       
       // after a valid response, the stimulus will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
-      display_element.querySelector('#jspsych-animation-image').className += ' responded';
+      display_element.querySelector('#jspsych-yuval-animation-image').className += ' responded';
 
       endTrial();
       clearInterval(animate_interval); // and kill animate_interval from running any more- YH
