@@ -8,7 +8,7 @@
     <script src="jspsych-6.1.0/plugins/jspsych-html-button-response.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-resize.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
-    <script src="jspsych-6.1.0/plugins/jspsych-yuval-animation.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-animation.js"></script>
     <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body></body>
@@ -223,7 +223,7 @@ var introduction_procedure = {
 var practice_procedure = {
     timeline: [
         {
-            type: 'yuval-animation',
+            type: 'animation',
             stimuli: ['img/074_R_filler_absent.jpg', 'img/074_R_filler_present.jpg'],
             choices: [32],
             sequence_reps: 14,
@@ -266,7 +266,7 @@ var practice_procedure = {
             timing_post_trial: 1200
         },
         {
-            type: 'yuval-animation',
+            type: 'animation',
             stimuli: ['img/070_L_filler_absent.jpg', 'img/070_L_filler_present.jpg'],
             choices: [32],
             sequence_reps: 14,
@@ -345,7 +345,7 @@ var trial_procedure = {
             post_trial_gap: 2000
         },
         {
-            type: 'yuval-animation',
+            type: 'animation',
             stimuli: jsPsych.timelineVariable('stimuli'),
             choices: [32],
             sequence_reps: 14,
