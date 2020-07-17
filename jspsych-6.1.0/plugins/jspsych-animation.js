@@ -5,14 +5,15 @@
  * documentation: docs.jspsych.org
  */
 
-jsPsych.plugins.animation = (function() {
+jsPsych.plugins["yuval-animation"] = (function() {
 
   var plugin = {};
 
-  jsPsych.pluginAPI.registerPreload('animation', 'stimuli', 'image');
+  /* YH - registers 'stimuli' for later loading. 'animation' is name of trial and 'image' type of file YH */
+  jsPsych.pluginAPI.registerPreload('yuval-animation', 'stimuli', 'image');
 
   plugin.info = {
-    name: 'animation',
+    name: 'yuval-animation',
     description: '',
     parameters: {
       stimuli: {
@@ -66,27 +67,30 @@ jsPsych.plugins.animation = (function() {
     var responses = [];
     var current_stim = "";
 
-    var animate_interval = setInterval(function() {
+    show_next_frame(); // Trying to make image appear first with no problems
+
+    var animate_interval = setInterval(function() { /* YH- setInterval-> executes function every interval */
       var showImage = true;
       display_element.innerHTML = ''; // clear everything
       animate_frame++;
-      if (animate_frame == trial.stimuli.length) {
-        animate_frame = 0;
-        reps++;
-        if (reps >= trial.sequence_reps) {
-          endTrial();
-          clearInterval(animate_interval);
+      if (animate_frame == trial.stimuli.length) { // YH - if all stims are done showing -> 
+        animate_frame = 0;                         // turn animate_frame back to 0
+        reps++;                                    // and add 1 rep representing a new repetition -YH
+        if (reps >= trial.sequence_reps) { // YH- if all reps are done -> 
+          endTrial();                      // execute endTrial func that finishes jspsych trial (written at the end of code)
+          clearInterval(animate_interval); // and kill animate_interval from running any more- YH
           showImage = false;
         }
       }
       if (showImage) {
         show_next_frame();
       }
-    }, interval_time);
+    }, interval_time); /* <---- YH - interval time from comment above is stated here - YH */
 
     function show_next_frame() {
       // show image
-      display_element.innerHTML = '<img src="'+trial.stimuli[animate_frame]+'" id="jspsych-animation-image"></img>';
+      // YH - display the image that is in the [animate_frame] spot in the 'stimuli' array 
+      display_element.innerHTML = '<img src="'+trial.stimuli[animate_frame]+'" id="jspsych-yuval-animation-image"></img>';
 
       current_stim = trial.stimuli[animate_frame];
 
@@ -96,13 +100,13 @@ jsPsych.plugins.animation = (function() {
         "time": performance.now() - startTime
       });
 
-      if (trial.prompt !== null) {
-        display_element.innerHTML += trial.prompt;
+      if (trial.prompt !== null) { // YH - if 'prompt' is not empty ->
+        display_element.innerHTML += trial.prompt; // display it
       }
 
-      if (trial.frame_isi > 0) {
-        jsPsych.pluginAPI.setTimeout(function() {
-          display_element.querySelector('#jspsych-animation-image').style.visibility = 'hidden';
+      if (trial.frame_isi > 0) { // YH - if there is frame_isi -> hide image at frame_time and write the blanks also into the data
+        jsPsych.pluginAPI.setTimeout(function() { // YH -executes this function after waiting for trial.frame_time (below)
+          display_element.querySelector('#jspsych-yuval-animation-image').style.visibility = 'hidden';
           current_stim = 'blank';
           // record when blank image was shown
           animation_sequence.push({
@@ -120,10 +124,14 @@ jsPsych.plugins.animation = (function() {
         rt: info.rt,
         stimulus: current_stim
       });
-
+      
       // after a valid response, the stimulus will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
-      display_element.querySelector('#jspsych-animation-image').className += ' responded';
+      display_element.querySelector('#jspsych-yuval-animation-image').className += ' responded';
+
+      endTrial();
+      clearInterval(animate_interval); // and kill animate_interval from running any more- YH
+      showImage = false;
     }
 
     // hold the jspsych response listener object in memory
@@ -133,7 +141,7 @@ jsPsych.plugins.animation = (function() {
       callback_function: after_response,
       valid_responses: trial.choices,
       rt_method: 'performance',
-      persist: true,
+      persist: false, // changed by YH - 'false' means that the key press will trigger the function only on the first press
       allow_held_key: false
     });
 

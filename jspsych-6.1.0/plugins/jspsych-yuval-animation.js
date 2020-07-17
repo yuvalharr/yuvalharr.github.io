@@ -67,6 +67,8 @@ jsPsych.plugins["yuval-animation"] = (function() {
     var responses = [];
     var current_stim = "";
 
+    show_next_frame(); // Trying to make image appear first with no problems
+
     var animate_interval = setInterval(function() { /* YH- setInterval-> executes function every interval */
       var showImage = true;
       display_element.innerHTML = ''; // clear everything
