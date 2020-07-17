@@ -383,7 +383,8 @@ jsPsych.init({
     timeline: [introduction_procedure,practice_procedure, trial_procedure],
     on_finish: function() {
       jsPsych.data.displayData();
-    }
+    },
+    preload_images: timeline_stimuli
   });
 
 </script>
