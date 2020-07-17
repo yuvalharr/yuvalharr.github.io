@@ -71,7 +71,7 @@ jsPsych.plugins["animation"] = (function() {
 
     var animate_interval = setInterval(function() { /* YH- setInterval-> executes function every interval */
       var showImage = true;
-       // clear everything
+      display_element.innerHTML = ''; // clear everything
       animate_frame++;
       if (animate_frame == trial.stimuli.length) { // YH - if all stims are done showing -> 
         animate_frame = 0;                         // turn animate_frame back to 0
@@ -90,12 +90,7 @@ jsPsych.plugins["animation"] = (function() {
     function show_next_frame() {
       // show image
       // YH - display the image that is in the [animate_frame] spot in the 'stimuli' array 
-      if(animate_frame == 0){
-        display_element.innerHTML = '<img src="'+trial.stimuli[animate_frame]+'" id="jspsych-animation-image"></img>';
-        }
-        else{
-        document.getElementById("jspsych-animation-image").src = trial.stimuli[animate_frame];	
-      }
+      display_element.innerHTML = '<img src="'+trial.stimuli[animate_frame]+'" id="jspsych-animation-image"></img>'
 
       current_stim = trial.stimuli[animate_frame];
 
