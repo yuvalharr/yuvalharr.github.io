@@ -329,6 +329,9 @@ var trial_procedure = {
                 jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('stimuli', true), function() {
                   done({ preload: "success" });
                 })
+                jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('detection_image', true), function() {
+                  done({ preload: "success" });
+                })
               }
 
         },
@@ -355,7 +358,7 @@ var trial_procedure = {
             choices: jsPsych.NO_KEYS,
             trial_duration: 1500,
             prompt: '<p style="font-size: 36px;">1</p>',
-            post_trial_gap: 2000
+            post_trial_gap: 0
         },
         {
             type: 'animation',
