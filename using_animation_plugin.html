@@ -319,18 +319,18 @@ var practice_procedure = {
 
 var trial_procedure = {
     timeline: [
-      {
-        
-            type: "call-function",
-            async: true,
-            func: function(done) {
-              jsPsych.getDisplayElement().innerHTML = "Loading... Please wait."
-              jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('stimuli', true), function() {
-                done({ preload: "success" });
-              })
-            }
+        {
+          
+              type: "call-function",
+              async: true,
+              func: function(done) {
+                jsPsych.getDisplayElement().innerHTML = "Loading... Please wait."
+                jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('stimuli', true), function() {
+                  done({ preload: "success" });
+                })
+              }
 
-      }
+        },
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
