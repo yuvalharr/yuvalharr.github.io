@@ -338,7 +338,7 @@ var trial_procedure = {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 1500,
+            trial_duration: 1000,
             prompt: '<p style="font-size: 36px;">3</p>',
             on_start: function(){
                 document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
@@ -348,14 +348,14 @@ var trial_procedure = {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 1500,
+            trial_duration: 1000,
             prompt: '<p style="font-size: 36px;">2</p>'
         },
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 1500,
+            trial_duration: 1000,
             prompt: '<p style="font-size: 36px;">1</p>',
             post_trial_gap: 0
         },
