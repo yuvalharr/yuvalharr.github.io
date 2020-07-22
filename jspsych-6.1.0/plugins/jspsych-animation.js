@@ -151,7 +151,8 @@ jsPsych.plugins["animation"] = (function() {
 
       var trial_data = {
         "animation_sequence": JSON.stringify(animation_sequence),
-        "responses": JSON.stringify(responses)
+        "responses": JSON.stringify(responses),
+        "rt": responses.rt
       };
 
       jsPsych.finishTrial(trial_data);
