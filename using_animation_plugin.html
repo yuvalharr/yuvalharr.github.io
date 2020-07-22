@@ -48,7 +48,7 @@ for(var i=0; i < absent_images.length; i++){
 coupled = jsPsych.randomization.shuffle(coupled); // shuffle 'coupled' array
 
 for (var i = 0; i < coupled.length; i++) { // create many arrays called animation_sequence_X
-    this["animation_sequence_"+(i+1)] = coupled[i].slice(0,2); // in each animation_sequence two items that are images a & b
+    this["animation_sequence_"+(i+1)] = [coupled[i][0], coupled[i][0], coupled[i][1], coupled[i][1]]; // in each animation_sequence two items that are images a & b
     this["detection_sequence"+(i+1)] = coupled[i].slice(2); // in each detection sequence one detection image string
 } 
 
@@ -125,54 +125,16 @@ var instructionsText = [
     choices: [32]
   },
   {
-    stimulus: ["<p style='font-size: 28px;'>In this part you will be asked to find changing objects within flickering natural indoor scenes.\
-    Each time you will be presented with two almost identical images. These images will be rapidly alternating between each other.\
-    Your goal will be to detect the one difference between these two images. This difference will be an object that is present in one image but not in the other.\
-    Once you have found the object, please press the space bar <b>as quickly as you can.</b></p>\
-    <p style='font-size: 28px;'>After that you will be asked about the location of the object. If you haven't found the object after 60 seconds you will also be asked about the location of the object.\
-    If you don't know or are unsure, please guess.</P>\
+    stimulus: ["<p style='font-size: 28px;'>In this part you will be asked to find a flickering single object within a scene.\
+    Each time you will be presented with one scene. This scene will be static, except for one single object that will be appearing and disappearing.\
+    Your goal will be to detect this object as quickly and accuretly as you can. Once you have found the object press the space bar <b>as quickly as possible.</b></p>\
+    <p style='font-size: 28px;'>After that you will be asked about the location of the object. If you haven't found the object and pressed the spacebar in 60 seconds you will still be asked about the location of the object.\
+    If you don't know or are unsure about it's location, please guess.</P>\
     <p style='font-size: 28px;'>We will now continue with a short practice before starting the main task.</p>\
     <p align='center'><i>Press the space bar to continue.</i></p>"],
     choices: [32]
-  },
-  {
-    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>Each time you will be presented with two almost identical images.</p> \
-        <p style='font-size: 28px;'>These images will be rapidly alternating between each other.</p> \
-    <p align='center'><i>Press the space bar to continue.</i></p></div>"
-    ],
-    choices: [32]
-  },
-  {
-    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>Your goal will be to detect the one difference between these two images.</p> \
-        <p style='font-size: 28px;'>This difference will be an object that is present in one image but not in the other.</p> \
-    <p align='center'><i>Press the space bar to continue.</i></p></div>"
-    ],
-    choices: [32]
-  },
-  {
-    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>Once you have found the object, please press the space bar as quickly as you can.</p> \
-    <p align='center'><i>Press the space bar to continue.</i></p></div>"
-    ],
-    choices: [32]
-  } ,
-  {
-    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>You will have 60 seconds for this.</p> \
-    <p style='font-size: 28px;'>If you did not find it in this time, don't worry.</p>\
-    <p align='center'><i>Press the space bar to continue.</i></p></div>"
-    ],
-    choices: [32]
-  } ,
-  {
-    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>After that you will be asked about the location of the object.</p>\
-        <p style='font-size: 28px;'>If you don't know or are unsure, please guess.</p> \
-      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
-    choices: [32]
-  },
-  {
-    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>We will now continue with a short practice before starting the main task.</p>\
-        <p align='center'></i>Press the space bar to continue.</i></p></div>"],
-    choices: [32]
   }
+  
   
 ];
 
@@ -232,7 +194,7 @@ var practice_procedure = {
     timeline: [
         {
             type: 'animation',
-            stimuli: ['img/074_R_filler_absent.jpg', 'img/074_R_filler_present.jpg'],
+            stimuli: ['img/074_R_filler_absent.jpg','img/074_R_filler_absent.jpg', 'img/074_R_filler_present.jpg', 'img/074_R_filler_present.jpg'],
             choices: [32],
             sequence_reps: 14,
             frame_isi: 0,
@@ -275,7 +237,7 @@ var practice_procedure = {
         },
         {
             type: 'animation',
-            stimuli: ['img/070_L_filler_absent.jpg', 'img/070_L_filler_present.jpg'],
+            stimuli: ['img/070_L_filler_absent.jpg','img/070_L_filler_absent.jpg', 'img/070_L_filler_present.jpg', 'img/070_L_filler_present.jpg'],
             choices: [32],
             sequence_reps: 14,
             frame_isi: 80,
@@ -291,12 +253,19 @@ var practice_procedure = {
 
         },
         {
+          type: 'image-keyboard-response',
+            stimulus: ['detection grids/070L.jpg'],
+            choices: [32],
+            prompt: '<p style="font-size: 24px">When asked about the location, keep in mind that sometimes more then one answer will seem possible.<br>\
+                     In any case like this, choose the option in which the major part of the object is located.</p>\
+                     <p style="font-size: 20px">Press the space bar to continue</p>',
+            stimulus_width: '900'
+        },
+        {
             type: 'image-button-response',
             stimulus: ['detection grids/070L.jpg'],
             choices: ['1', '2','3','4'],
-            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>row</b> is the changed item located?</p>\
-                     <p style="font-size: 24px">If you think there is more than one correct option, press the one that you think is the most correct.</p>\
-                     <p style="font-size: 24px">If you do not know, just guess.</p>',
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>row</b> is the changed item located?</p>',
             button_html: '<button class="jspsych-btn">%choice%</button>',
             stimulus_width: '900',
             margin_horizontal: '50px',
@@ -308,9 +277,7 @@ var practice_procedure = {
             type: 'image-button-response',
             stimulus: ['detection grids/070L.jpg'],
             choices: ['A', 'B', 'C', 'D'],
-            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>collumn</b> is the changed item located?</p>\
-                     <p style="font-size: 24px">If you think there is more than one correct option, press the one that you think is the most correct.</p>\
-                     <p style="font-size: 24px">If you do not know, just guess.</p>',
+            prompt: '<p style="font-size: 28px;margin-top: 0px;margin-bottom: 0px;">In what <b>collumn</b> is the changed item located?</p>',
             button_html: '<button class="jspsych-btn">%choice%</button>',
             stimulus_width: '900',
             margin_horizontal: '50px',
@@ -349,20 +316,27 @@ var trial_procedure = {
             prompt: '<p style="font-size: 36px;">3</p>',
             on_start: function(){
                 document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
-            },
+            }
         },
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 1000,
+            trial_duration: 1500,
+            prompt: '<p style="font-size: 36px;">3</p>'
+        },
+        {
+            type: 'html-keyboard-response',
+            stimulus: '<p style="font-size: 48px;">ready?</p>',
+            choices: jsPsych.NO_KEYS,
+            trial_duration: 1500,
             prompt: '<p style="font-size: 36px;">2</p>'
         },
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 1000,
+            trial_duration: 1500,
             prompt: '<p style="font-size: 36px;">1</p>',
             post_trial_gap: 0
         },
