@@ -65,6 +65,7 @@ jsPsych.plugins["animation"] = (function() {
     var startTime = performance.now();
     var animation_sequence = [];
     var responses = [];
+    var rt =[]; // YH - added to add rt data
     var current_stim = "";
 
     //show_next_frame(); // Trying to make image appear first with no problems
@@ -124,6 +125,12 @@ jsPsych.plugins["animation"] = (function() {
         rt: info.rt,
         stimulus: current_stim
       });
+
+      rt.push({
+        rt: info.rt
+      })
+
+      
       
       // after a valid response, the stimulus will have the CSS class 'responded'
       // which can be used to provide visual feedback that a response was recorded
@@ -152,7 +159,7 @@ jsPsych.plugins["animation"] = (function() {
       var trial_data = {
         "animation_sequence": JSON.stringify(animation_sequence),
         "responses": JSON.stringify(responses),
-        "rt": responses.rt
+        "rt": rt
       };
 
       jsPsych.finishTrial(trial_data);
