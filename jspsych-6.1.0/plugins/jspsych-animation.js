@@ -127,8 +127,8 @@ jsPsych.plugins["animation"] = (function() {
       });
 
       rt.push({
-        rt: info.rt
-      })
+        "rt": performance.now() - startTime
+      });
 
       
       
