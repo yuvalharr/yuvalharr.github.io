@@ -119,6 +119,10 @@ jsPsych.plugins["animation"] = (function() {
     }
 
     var after_response = function(info) {
+      
+      rt.push(
+        performance.now() - startTime
+      );
 
       responses.push({
         key_press: info.key,
@@ -126,9 +130,7 @@ jsPsych.plugins["animation"] = (function() {
         stimulus: current_stim
       });
 
-      rt.push({
-        "rt": performance.now() - startTime
-      });
+      
 
       
       
@@ -159,7 +161,7 @@ jsPsych.plugins["animation"] = (function() {
       var trial_data = {
         "animation_sequence": JSON.stringify(animation_sequence),
         "responses": JSON.stringify(responses),
-        "rt": JSON.stringify(rt)
+        "rt": JSON.stringify(rt[0])
       };
 
       jsPsych.finishTrial(trial_data);
