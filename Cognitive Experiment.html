@@ -43,6 +43,40 @@ for (i = 1; i <= num_img_pairs; i++) { //YH- creating two arrays -> one for all 
   detection_images.push('detection grids/0' + i + random_var[i-1] + '.jpg')
 }
 
+// YH - make answers array *manually*
+answers_L =[]
+answers_L.push([1,1]) //img_1
+answers_L.push([1,3])
+answers_L.push([1,2])
+answers_L.push([1,0])
+answers_L.push([0,3]) //img_5  
+answers_L.push([0,2])
+
+// Make function to take L answers and make into R
+function flipToR (L_ans) {
+  var R_ans = []
+  R_ans = L_ans
+  if (R_ans[0] == 0) {
+    R_ans[0] = 3
+  } else {
+    if (R_ans[0] == 1) {
+      R_ans[0] = 2
+    } else {
+      if (R_ans[0] == 2) {
+        R_ans[0] = 1
+      } else {
+        R_ans[0] = 0
+      }
+    }
+  }
+  return R_ans;
+}
+/////// **** doesnt work yet --> answers_L changing as well - need to fix ****
+var answers_R = []
+for (i = 0; i < answers_L.length; i++) {
+  answers_R.push(answers_L[i])
+  answers_R[i] = flipToR (answers_R[i])
+}
 // YH- stimuli array preperation
 var coupled = [];                  // make 'coupled' array -> each item is an array of coupled (a & b) images
 for(var i=0; i < absent_images.length; i++){
