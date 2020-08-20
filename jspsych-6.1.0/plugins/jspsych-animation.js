@@ -154,6 +154,12 @@ jsPsych.plugins["animation"] = (function() {
       allow_held_key: false
     });
 
+    // YH - add stimuli number to data of trial - YH
+    var stimuli_txt = trial.stimuli[0];
+    var stimuli_num = stimuli_txt.replace(/[^0-9]/g,''); // extract only num from stim name
+    var stimuli_side = stimuli_txt.substring(7, 9).replace(/[^a-zA-Z]+/g, ''); // extract only R or L from stim name
+    
+
     function endTrial() {
 
       jsPsych.pluginAPI.cancelKeyboardResponse(response_listener);
@@ -161,7 +167,11 @@ jsPsych.plugins["animation"] = (function() {
       var trial_data = {
         "animation_sequence": JSON.stringify(animation_sequence),
         "responses": JSON.stringify(responses),
-        "rt": JSON.stringify(rt[0])
+        "rt": JSON.stringify(rt[0]), //YH added
+        //"stimuli_txt": stimuli_txt, // YH added
+        "stimulus": stimuli_num, // YH added 
+        "stimulus_side": stimuli_side // YH added
+
       };
 
       jsPsych.finishTrial(trial_data);

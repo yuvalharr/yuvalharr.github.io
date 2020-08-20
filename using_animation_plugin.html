@@ -10,6 +10,9 @@
     <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-animation.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-call-function.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
     <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body></body>
@@ -99,24 +102,21 @@ var preCalibInsText = [{
     stimulus: ["<div class='center'><p>Using your mouse, \
       you will be asked to adjust the size of an empty box, so that it matches the \
       size of your credit card.</p>\
-      <p align='center'><i>Press the space bar to continue</i></p></div>"],
-    choices: [32]
-  },
-  {
-    stimulus: ["<div class='center'><p>Take your time in doing so, as this measurement\
-      will be used throughout the</p> \
-      <p>study to make sure images are presented to \
+      <p>Take your time in doing so, as this measurement\
+      will be used throughout the \
+      study to make sure images are presented to \
       you in their correct size.</p>\
       <p align='center'><i>Press the space bar to start the calibration stage</i></p></div>"],
     choices: [32]
   }
+  
 ];
 
 var instructionsText = [
   {
     stimulus: ["<p style='font-size: 28px;'>We will now continue to the first part out of two in this experiment.</p>\
                 <p style='font-size: 28px;'><b>Please read the following instructions carefully.</b></p>\
-    <p style='font-size: 24px;'><i>Press the space bar to continue to the instructions.</i></p>"],
+    <p style='font-size: 24px;'><i>Press the space bar to continue to the instructions</i></p>"],
     choices: [32]
   },
   {
@@ -160,7 +160,9 @@ var introduction_procedure = {
             type: 'fullscreen',
             fullscreen_mode: true,
             message: '<p>This experiment has to be performed on full screen mode.</p>\
-            <p>Please do not leave full screen mode at any time throughout the experiment.</p>'
+            <p>Please do not leave full screen mode at any time throughout the experiment.</p>',
+            button_label: 'Press here to enter full screen mode'
+
             
         },
         {
@@ -251,7 +253,7 @@ var practice_procedure = {
           type: 'image-keyboard-response',
             stimulus: ['detection grids/070L.jpg'],
             choices: [32],
-            prompt: '<p style="font-size: 24px">When asked about the location, keep in mind that sometimes more then one answer will seem possible.<br>\
+            prompt: '<p style="font-size: 24px">When asked about the location, keep in mind that sometimes more then one answer may seem possible.<br>\
                      In any case like this, choose the option in which the major part of the object is located.</p>\
                      <p style="font-size: 24px">Press the space bar to continue</p>',
             stimulus_width: '900'
@@ -371,9 +373,84 @@ var trial_procedure = {
     timeline_variables: timeline_stimuli
 }
 
+//** 7---------Debrief **//
+
+var debrief = {
+  timeline: [
+    {
+      type: "html-keyboard-response",
+      stimulus: "<div class='center'>You have completed this part of the study.\
+      <p>You will now answer several questions. Please answer them sincerely, \
+      we remind you that your answers are completely annonymous.</p>\
+      <p style='font-size: 24px;'><i>Press the space bar to continue</i></p></div>",
+      choices: [32]
+    },
+    {
+      type: "survey-text",
+      questions: [{
+          prompt: "How old are you?",
+          columns: 20,
+          rows: 1,
+          value: ''
+        },
+        {
+          prompt: 'Have you been diagnosed with, or believe you have an attention deficit disorder?',
+          columns: 60,
+          rows: 1,
+          value: ''
+        }
+      ]
+    }, 
+    {
+      type: "survey-multi-choice",
+      questions: [{
+          prompt: "What is your gender?",
+          options: ["Male", "Female", "Other"],
+          required: true
+        },
+        {
+          prompt: "What is your dominant hand?",
+          options: ["Right", "Left", "Both"],
+          required: true
+        },
+        {
+          prompt: "Is English your native language?",
+          options: ["Yes", "No"],
+          required: true
+        }
+      ]
+    },
+    {
+      type: 'survey-likert',
+      questions: [{
+        prompt: "How fluent are you in reading and understanding English?",
+        labels: ["1<br>Not at all", "2", "3", "4", "5<br>Very fluent"],
+        required: true
+      }]
+    },
+    {
+      type: 'survey-likert',
+      questions: [{
+        prompt: "How clear were the instructions to you?",
+        labels: ["1<br>Not at all", "2", "3", "4", "5<br>Absolutely clear"],
+        required: true
+      }]
+    },
+    {
+      type: 'survey-text',
+      questions: [{
+        prompt: "Did you have any special strategy that helped you seeing \
+      the objects more quickly?",
+        columns: 100,
+        rows: 4,
+        value: ''
+      }],
+    }
+]}
+
 
 jsPsych.init({
-    timeline: [introduction_procedure,practice_procedure, trial_procedure],
+    timeline: [introduction_procedure,practice_procedure, trial_procedure, debrief],
     on_finish: function() {
       alert("The experiment is over. Thank you for your participation!");
     }//,
