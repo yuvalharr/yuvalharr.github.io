@@ -113,14 +113,13 @@ for(var i=1; i <= num_img_pairs; i++){
     pre_load_list.push(current_anim_seq, current_detection_seq); // all images array for preload - YH
 }
 
-for(var i=0; i <= coupled.length; i++){
-    
+for(var i=0; i < coupled.length; i++){    
     timeline_stimuli_2.push({stimuli: [coupled[i][0], coupled[i][0], coupled[i][1], coupled[i][1]], 
                              detection_image: coupled[i][2],
                              answers: coupled[i][3]
                              } // images for timeline - YH
                          );
-    pre_load_list.push(current_anim_seq, current_detection_seq); // all images array for preload - YH
+    
     pre_load_list_2.push(timeline_stimuli[i]["stimuli"], timeline_stimuli[i]["detection_image"]);
 }
 
