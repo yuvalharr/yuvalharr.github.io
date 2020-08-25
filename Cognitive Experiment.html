@@ -30,7 +30,7 @@ function replicate(arr, times) { // function to help make array of many 'L's and
      return res;
 }
 
-var num_img_pairs = 20,   // ENTER NUMBER OF STIMULI HERE
+var num_img_pairs = 6,   // ENTER NUMBER OF STIMULI HERE
     absent_images = [],
     present_images = [],
     detection_images = [],
@@ -43,7 +43,7 @@ for (i = 1; i <= num_img_pairs; i++) { //YH- creating two arrays -> one for all 
   detection_images.push('detection grids/0' + i + random_var[i-1] + '.jpg')
 }
 
-// YH - make answers array *manually*
+// YH - make answers_L array *manually*. *** First value is column. second is row ***
 answers_L =[]
 answers_L.push([1,1]) //img_1
 answers_L.push([1,3])
@@ -71,35 +71,57 @@ function flipToR (L_ans) {
   }
   return R_ans;
 }
-/////// **** doesnt work yet --> answers_L changing as well - need to fix ****
+
+// Make answers_R array *automatically*
 var answers_R = []
+for (i = 0, len = answers_L.length; i < len; i++) {
+    answers_R[i] = answers_L[i].slice();
+}
 for (i = 0; i < answers_L.length; i++) {
-  answers_R.push(answers_L[i])
   answers_R[i] = flipToR (answers_R[i])
 }
+
 // YH- stimuli array preperation
 var coupled = [];                  // make 'coupled' array -> each item is an array of coupled (a & b) images
 for(var i=0; i < absent_images.length; i++){
    coupled.push([absent_images[i], present_images[i], detection_images[i]]);
+   if (detection_images[i].slice(-5, -4) == "L") { // assign each coupled[i] with *only* its appropriate side answers (L or R)
+     coupled[i].push(answers_L[i])
+   } else {
+    coupled[i].push(answers_R[i])
+   }
 }
 coupled = jsPsych.randomization.shuffle(coupled); // shuffle 'coupled' array
 
 for (var i = 0; i < coupled.length; i++) { // create many arrays called animation_sequence_X
     this["animation_sequence_"+(i+1)] = [coupled[i][0], coupled[i][0], coupled[i][1], coupled[i][1]]; // in each animation_sequence two items that are images a & b
-    this["detection_sequence"+(i+1)] = coupled[i].slice(2); // in each detection sequence one detection image string
+    this["detection_sequence_"+(i+1)] = coupled[i].slice(2, 3); // in each detection sequence one detection image string
 } 
 
 // YH- prepare stimuli for the timeline in an array. each item is {stimuli: animation_sequence_X}
 var timeline_stimuli = []
+var timeline_stimuli_2 = []
 var pre_load_list = []   // YH - array of images names for preload_images in the init function
-for(var i=1; i <= coupled.length; i++){
+var pre_load_list_2 = []
+for(var i=1; i <= num_img_pairs; i++){
     var str ="animation_sequence_" + i;
-    var str2 = "detection_sequence" + i;
+    var str2 = "detection_sequence_" + i;
     var current_anim_seq = eval(str)
     var current_detection_seq = eval(str2)
     timeline_stimuli.push({stimuli: current_anim_seq  , detection_image: current_detection_seq} // images for timeline - YH
                          );
     pre_load_list.push(current_anim_seq, current_detection_seq); // all images array for preload - YH
+}
+
+for(var i=0; i <= coupled.length; i++){
+    
+    timeline_stimuli_2.push({stimuli: [coupled[i][0], coupled[i][0], coupled[i][1], coupled[i][1]], 
+                             detection_image: coupled[i][2],
+                             answers: coupled[i][3]
+                             } // images for timeline - YH
+                         );
+    pre_load_list.push(current_anim_seq, current_detection_seq); // all images array for preload - YH
+    pre_load_list_2.push(timeline_stimuli[i]["stimuli"], timeline_stimuli[i]["detection_image"]);
 }
 
 // add zoom events
@@ -393,6 +415,7 @@ var trial_procedure = {
             sequence_reps: 94,
             frame_isi: 80,
             frame_time: 240,
+            //data: {side: jsPsych.timelineVariable('detection_image')()[0].slice(-5, -4)},
             on_finish: function(){
                 document.querySelector('#cursor-toggle').remove()
             }
@@ -405,7 +428,15 @@ var trial_procedure = {
             button_html: '<button class="jspsych-btn">%choice%</button>',
             stimulus_width: '900',
             margin_horizontal: '50px',
-            margin_vertical: '20px'
+            margin_vertical: '20px'/**,
+            on_finish: function(data) {
+                if(data.button_pressed == jsPsych.data.get().last(6).values()[0].button_pressed){
+                  data.correct = true;
+                } else {
+                  data.correct = false;
+                }
+            } **/
+
         },
         {
             type: 'image-button-response',
@@ -446,6 +477,12 @@ var record_zoom_events = {
   }
 }
 
+var record_window_events = {
+  type: 'call-function',
+  func: function(){
+    return jsPsych.data.getInteractionData().json();
+  }
+}
 // Trial to write mturk data 
 
 var turkInfo = jsPsych.turk.turkInfo();
@@ -568,7 +605,7 @@ var get_code = {
 
 
 jsPsych.init({
-    timeline: [introduction_procedure,practice_procedure, trial_procedure, record_zoom_events, record_mturk_data ,debrief, get_code],
+    timeline: [introduction_procedure,practice_procedure, trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, get_code],
     on_finish: function() {
       alert("The experiment is over. Thank you for your participation!");
     }//,
