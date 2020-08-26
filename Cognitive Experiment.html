@@ -31,8 +31,8 @@ function replicate(arr, times) { // function to help make array of many 'L's and
 }
 
 var num_img_pairs = 20,   // ENTER NUMBER OF STIMULI HERE
-    wrong_answers_message = 2,
-    wrong_answers_abort = 4,
+    wrong_answers_message = 2, // at this num of wrong answers, every wrong answer will get a warning message (including this num)
+    wrong_answers_abort = 4, // at this num of wrong answers, the exp will be aborted
     absent_images = [],
     present_images = [],
     detection_images = [],
@@ -251,8 +251,6 @@ var introduction_procedure = {
     ]
 }
 
-
-
 var practice_procedure = {
     timeline: [
         {
@@ -354,13 +352,6 @@ var practice_procedure = {
     ]
 }
 
-/** var conditional_warning = { // YH - a conditional trial (goes inside conditional_trial) to show warning message if there are two many wrong answers - YH
-            type: 'html-keyboard-response',
-            stimulus: "<p style='font-size: 28px;'>It seems you don't follow the instructions as expected.\
-                      <br>Please pay full attention and press the space-bar only after seeing the target.</p>\
-                      <p style='font-size: 26px;'><i>Press the space bar to continue.</i></p>"      
-} **/
-
 var warning_trial = {      // warning message to display after too many wrong answers
     type: 'html-keyboard-response',
     stimulus: "<div class = 'center'><p style='font-size: 28px;'>It seems that you are not performing the task as instructed.</p>\
@@ -389,20 +380,6 @@ var total_wrong_answers = 0; // total num of wrong answers (never decreases)
 
 var trial_procedure = {
     timeline: [
-        /**{ // *********** CHECK AFTER INCREASING NUM OF STIMULI. MIGHT NEED TO RETURN THIS PART FOR PROPER PRELOAD OF IMAGES ***********
-          
-              type: "call-function",
-              async: true,
-              func: function(done) {
-                jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('stimuli', true), function() {
-                  done({ preload: "success" });
-                })
-                jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('detection_image', true), function() {
-                  done({ preload: "success" });
-                })
-              }
-
-        }, **/
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
@@ -521,13 +498,11 @@ var trial_procedure = {
                
             }
         }
-        
     ],
     timeline_variables: timeline_stimuli // Declare timeline_stimuli as timeline of the experiment
 }
 
 // Trial to write all zoom events to data
-
 // this will store the zoom_event data in the data for this trial.
 var record_zoom_events = {
   type: 'call-function',
@@ -535,15 +510,14 @@ var record_zoom_events = {
     return JSON.stringify(zoom_event);
   }
 }
-
-var record_window_events = {
+var record_window_events = { // records window events
   type: 'call-function',
   func: function(){
     return jsPsych.data.getInteractionData().json();
   }
 }
-// Trial to write mturk data 
 
+// Trial to write mturk data 
 var turkInfo = jsPsych.turk.turkInfo();
 var record_mturk_data = {
   type: 'call-function',
@@ -661,7 +635,6 @@ var get_code = {
     choices: ['Done'],
     prompt: "<p>In order for your HIT to be submitted and for you to be paid, please copy the code above and paste it in the MTurk's HIT page.</p>"
 };
-
 
 jsPsych.init({
     timeline: [introduction_procedure,practice_procedure, trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, get_code],
