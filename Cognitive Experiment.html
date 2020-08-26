@@ -31,6 +31,8 @@ function replicate(arr, times) { // function to help make array of many 'L's and
 }
 
 var num_img_pairs = 20,   // ENTER NUMBER OF STIMULI HERE
+    wrong_answers_message = 2,
+    wrong_answers_abort = 4,
     absent_images = [],
     present_images = [],
     detection_images = [],
@@ -359,6 +361,32 @@ var practice_procedure = {
                       <p style='font-size: 26px;'><i>Press the space bar to continue.</i></p>"      
 } **/
 
+var warning_trial = {      // warning message to display after too many wrong answers
+    type: 'html-keyboard-response',
+    stimulus: "<div class = 'center'><p style='font-size: 28px;'>It seems that you are not performing the task as instructed.</p>\
+      <p style='font-size: 28px;'>You are reminded to press the space bar only after you have spotted the flickering object</p>\
+      <p style='font-size: 24px;'>Press the space bar to continue.</p>",
+    on_finish: function() {
+      new_wrong_answers--;
+    }
+      
+}
+
+var abort_trial = {
+  type: 'html-keyboard-response',
+  stimulus: "<div class = 'center'><p style='font-size: 28px;'>The task is still not being performed as instructed despite multiple alerts.</p> \
+            <p style='font-size: 28px;'>The experiment will aborted now.</p> \
+            <p style='font-size: 28px;'>If you feel that this is a mistake, please email <i>yuval.harris@mail.huji.ac.il.</i></p> \
+            <p style='font-size: 24px;'>Press the space bar to continue.</p>",
+  choices: [32],
+  on_finish: function(){
+    jsPsych.endExperiment('The experiment was aborted');
+  } 
+}
+
+var new_wrong_answers = 0; // num of wrong answers used to display warning message when needed. after each message will decrease by 1 to allow trials with unnecessary message
+var total_wrong_answers = 0; // total num of wrong answers (never decreases)
+
 var trial_procedure = {
     timeline: [
         /**{ // *********** CHECK AFTER INCREASING NUM OF STIMULI. MIGHT NEED TO RETURN THIS PART FOR PROPER PRELOAD OF IMAGES ***********
@@ -430,13 +458,13 @@ var trial_procedure = {
             stimulus_width: '900',
             margin_horizontal: '50px',
             margin_vertical: '20px',
-            
-              
             on_finish: function(data) {
                 if ( data.button_pressed == jsPsych.data.get().last(2).values()[0].col_row_answers[0] ) {
                   data.correct_response = true;
                 } else {
                   data.correct_response = false;
+                  total_wrong_answers++; // if wrong, add 1 to wrong answers count
+                  new_wrong_answers++;
                 }
             }
 
@@ -455,24 +483,45 @@ var trial_procedure = {
                   data.correct_response = true;
                 } else {
                   data.correct_response = false;
+                  if (jsPsych.data.get().last(1).values()[0].correct_response == true) { // in the second grid trial, add 1 only if previous grid was
+                    total_wrong_answers++;                                                 //  correct, to not count twice wrong answers in same stimuli.
+                    new_wrong_answers++;
+                  }
                 }
             }
 
-        }
-        /** { // YH - a conditional trial to show warning message if there are two many wrong answers - YH
-            timeline: [conditional_warning]
-            function(){
-                // get the data from the previous trial,
-                // and check how many wrong answers - YH
-                var data = jsPsych.data.get().last(1).values()[0];
-                if(data.key_press == jsPsych.pluginAPI.convertKeyCharacterToKeyCode('s')){
-                    return false;
+        },
+        {
+            timeline: [abort_trial],
+            conditional_function: function(){
+                if (jsPsych.data.get().last(3).values()[0].responses) {
+                  if (total_wrong_answers >= wrong_answers_abort) {
+                    return true
+                  } else {
+                     return false
+                  }
                 } else {
-                    return true;
-                }
+                  return false
+                }          
+               
             }
-                      
-        } **/
+        },
+        {
+            timeline: [warning_trial],
+            conditional_function: function(){
+                if (jsPsych.data.get().last(3).values()[0].responses) {
+                  if (new_wrong_answers >= wrong_answers_message) {
+                    return true;
+                  } else {
+                     return false
+                  }
+                } else {
+                  return false
+                }          
+               
+            }
+        }
+        
     ],
     timeline_variables: timeline_stimuli // Declare timeline_stimuli as timeline of the experiment
 }
