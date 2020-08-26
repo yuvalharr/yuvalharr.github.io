@@ -257,7 +257,7 @@ var practice_procedure = {
             type: 'animation',
             stimuli: ['img/demo1_absent.jpg','img/demo1_absent.jpg', 'img/demo1_present.jpg', 'img/demo1_present.jpg'],
             choices: [32],
-            sequence_reps: 94,
+            sequence_reps: 30,
             frame_isi: 0,
             frame_time: 500,
             prompt: '<p style="font-size: 28px;">Press the <b>space bar</b> quickly after finding the flickering object</p>',
@@ -301,7 +301,7 @@ var practice_procedure = {
             type: 'animation',
             stimuli: ['img/demo2_absent.jpg','img/demo2_absent.jpg', 'img/demo2_present.jpg', 'img/demo2_present.jpg'],
             choices: [32],
-            sequence_reps: 94,
+            sequence_reps: 47, 
             frame_isi: 80,
             frame_time: 240,
             timing_post_trial: 1200,
@@ -312,7 +312,6 @@ var practice_procedure = {
             on_finish: function(){
                 document.querySelector('#cursor-toggle').remove()
             }
-
         },
         {
           type: 'image-keyboard-response',
@@ -417,7 +416,7 @@ var trial_procedure = {
             type: 'animation',
             stimuli: jsPsych.timelineVariable('stimuli'),
             choices: [32],
-            sequence_reps: 94,
+            sequence_reps: 47,
             frame_isi: 80,
             frame_time: 240,
             data: {
