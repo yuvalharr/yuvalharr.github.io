@@ -296,8 +296,9 @@ jsPsych.plugins['virtual-chin'] = (function() {
       function end_trial(){
         // document.getElementsByClassName("jspsych-content-wrapper")[0].style.backgroundColor = 'gray'; //Background color
         // trial_data.viewingDistance=   JSON.stringify(viewingDistance); // best practice for saving in jsPsych. It is a JSON instead of array.
-        jsPsych.finishTrial(trial_data); // ends trial and save the data
         display_element.innerHTML = ' '; // clear the display
+        jsPsych.finishTrial(trial_data); // ends trial and save the data
+        
 
       }
       show_stimulus();
