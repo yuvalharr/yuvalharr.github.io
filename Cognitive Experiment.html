@@ -13,7 +13,14 @@
     <script src="jspsych-6.1.0/plugins/jspsych-survey-text.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-virtual-chin.js"></script>
+    <script src= "jspsych-6.1.0/jquery.min.js"></script>
+    <script src= "jspsych-6.1.0/jquery-ui.min.js"></script>
+    <script src= "jspsych-6.1.0/svg.min.js"></script>
     <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+    <link href="jspsych-6.1.0/css/bootstrap.min.css" rel="stylesheet" type="text/css"></link>
+    <link href="jspsych-6.1.0/css/jquery-ui.css" rel="stylesheet" type="text/css"></link>
+    <link href="jspsych-6.1.0/css/styles.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body></body>
 
@@ -30,7 +37,7 @@ function replicate(arr, times) { // function to help make array of many 'L's and
      return res;
 }
 
-var num_img_pairs = 8,   // ENTER NUMBER OF STIMULI HERE
+var num_img_pairs = 25,   // ENTER NUMBER OF STIMULI HERE
     wrong_answers_message = 2, // at this num of wrong answers, every wrong answer will get a warning message (including this num)
     wrong_answers_abort = 4, // at this num of wrong answers, the exp will be aborted
     absent_images = [],
@@ -47,27 +54,32 @@ for (i = 1; i <= num_img_pairs; i++) { //YH- creating two arrays -> one for all 
 
 // YH - make answers_L array *manually*. *** First value is column. second is row ***
 answers_L =[]
-answers_L.push([1,1]) //img_1
+answers_L.push([1,1]) // img_1
 answers_L.push([1,3])
 answers_L.push([1,2])
 answers_L.push([1,0])
-answers_L.push([0,3]) //img_5  
+answers_L.push([0,3]) // img_5  
 answers_L.push([0,2])
-// fake numbers from here on
-answers_L.push([1,1]) 
+answers_L.push([1,2]) 
+answers_L.push([1,2])
+answers_L.push([0,1])
+answers_L.push([0,0]) // img 10
+answers_L.push([0,1])
+answers_L.push([0,2])
+answers_L.push([0,1])
+answers_L.push([1,1])
+answers_L.push([0,0]) // img 15  
+answers_L.push([0,2])
+answers_L.push([1,0])
 answers_L.push([1,3])
-/**answers_L.push([1,2])
-answers_L.push([1,0]) //img 10
-answers_L.push([0,3]) 
-answers_L.push([0,2])
-answers_L.push([1,1]) 
 answers_L.push([1,3])
-answers_L.push([1,2]) //img 15
-answers_L.push([1,0]) 
-answers_L.push([0,3]) 
+answers_L.push([0,2]) // img 20 
 answers_L.push([0,2])
-answers_L.push([0,3]) 
-answers_L.push([0,2]) // img 20 **/
+answers_L.push([0,2])
+answers_L.push([1,2])
+answers_L.push([1,2])
+answers_L.push([1,0]) // img 25
+
 
 // Make function to take L answers and make into R
 function flipToR (L_ans) {
@@ -117,7 +129,7 @@ var pre_load_list = []   // YH - array of images names for preload_images in the
 
 for(var i=0; i < coupled.length; i++){     // make timeline - YH
     timeline_stimuli.push({stimuli: [coupled[i][0], coupled[i][0], coupled[i][1], coupled[i][1]], 
-                             detection_image: coupled[i][2],
+                             detection_image: [coupled[i][2]],
                              answers: coupled[i][3]
                              } 
                          );
@@ -231,6 +243,10 @@ var introduction_procedure = {
 
             
         },
+        
+        {
+            type: 'virtual-chin'
+        },        
         {
             type: 'html-keyboard-response',
             timeline: preCalibInsText,
@@ -354,9 +370,9 @@ var practice_procedure = {
 var warning_trial = {      // warning message to display after too many wrong answers
     type: 'html-keyboard-response',
     stimulus: "<div class = 'center'><p style='font-size: 28px;'>It seems that you are not performing the task as instructed.</p>\
-      <p style='font-size: 28px;'>You are reminded to press the space bar only after you have spotted the flickering object.</p>\
+      <p style='font-size: 28px;'>You are reminded to press the space bar only if you have spotted the flickering object.</p>\
       <p style='font-size: 28px;'>If it keeps recurring we might need to end the experiment.</p> \
-      <p style='font-size: 24px;'>Press the space bar to continue.</p>",
+      <p style='font-size: 24px;'><i>Press the space bar to continue</i></p>",
     on_finish: function() {
       new_wrong_answers--;
     }
@@ -368,7 +384,7 @@ var abort_trial = {
   stimulus: "<div class = 'center'><p style='font-size: 28px;'>The task is still not being performed as instructed despite multiple warnings.</p> \
             <p style='font-size: 28px;'>The experiment will be aborted now.</p> \
             <p style='font-size: 28px;'>If you feel that this is a mistake, please email us at <i>yuval.harris@mail.huji.ac.il</i>.</p> \
-            <p style='font-size: 24px;'>Press the space bar to quit.</p>",
+            <p style='font-size: 24px;'>Press the space bar to quit</p>",
   choices: [32],
   on_finish: function(){
     jsPsych.endExperiment('The experiment was aborted');
@@ -380,6 +396,20 @@ var total_wrong_answers = 0; // total num of wrong answers (never decreases)
 
 var trial_procedure = {
     timeline: [
+        {
+              
+              type: "call-function",
+              async: true,
+              func: function(done) {
+                jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('stimuli', true), function() {
+                  done({ preload: "success" });
+                })
+                jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('detection_image', true), function() {
+                  done({ preload: "success" });
+                })
+              }
+
+        },
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
@@ -436,11 +466,11 @@ var trial_procedure = {
             margin_horizontal: '50px',
             margin_vertical: '20px',
             on_finish: function(data) {
-                if ( data.button_pressed == jsPsych.data.get().last(2).values()[0].col_row_answers[0] ) { // if button pressed was correct
+                if ( data.button_pressed == jsPsych.data.get().last(2).values()[0].col_row_answers[0] ) { // if button pressed was correct 
                   data.correct_response = true;
                 } else {
                   data.correct_response = false;
-                  if (jsPsych.data.get().last(1).values()[0].responses ) {   // only if there was response during trial, add 1 to answer counts
+                  if (jsPsych.data.get().last(2).values()[0].rt ) {   // only if there was response during trial (=rt exists),
                     total_wrong_answers++; // if wrong, add 1 to wrong answers count
                     new_wrong_answers++;
                   }
@@ -461,8 +491,8 @@ var trial_procedure = {
                   data.correct_response = true;
                 } else {
                   data.correct_response = false;
-                  if (jsPsych.data.get().last(2).values()[0].responses ) { // only if there was response during trial
-                    if (jsPsych.data.get().last(1).values()[0].correct_response == true) { // in the second grid trial, add 1 only if previous grid was
+                  if (jsPsych.data.get().last(3).values()[0].rt ) { // only if there was response during trial (rt exists)
+                    if (jsPsych.data.get().last(2).values()[0].correct_response == true) { // in the second grid trial, add 1 only if previous grid was
                       total_wrong_answers++;                                                 //  correct, to not count twice wrong answers in same stimuli.
                       new_wrong_answers++;
                   }
