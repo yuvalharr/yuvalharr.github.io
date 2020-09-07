@@ -14,12 +14,15 @@
     <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-virtual-chin.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-brms.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-brms-test.js"></script>
     <script src= "jspsych-6.1.0/jquery.min.js"></script>
     <script src= "jspsych-6.1.0/jquery-ui.min.js"></script>
     <script src= "jspsych-6.1.0/svg.min.js"></script>
     <link href="jspsych-6.1.0/css/bootstrap.min.css" rel="stylesheet" type="text/css"></link> 
     <link href="jspsych-6.1.0/css/jquery-ui.css" rel="stylesheet" type="text/css"></link>
     <link href="jspsych-6.1.0/css/styles.css" rel="stylesheet" type="text/css"></link>
+    
     <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body></body>
@@ -531,6 +534,50 @@ var trial_procedure = {
     ],
     timeline_variables: timeline_stimuli // Declare timeline_stimuli as timeline of the experiment
 }
+
+
+
+/** -------------------------------------------------------------------------------------------------------------------------- **/
+/** -------------------------------------------------------- BRMS PART ------------------------------------------------------- **/
+/** -------------------------------------------------------------------------------------------------------------------------- 
+
+// Parameters
+var ITI = 1000,
+  time_limit = 60 * (60 * 1000),
+  stimAlphas = 0.4,
+  unitSize = 4,
+  breakEvery = 50,
+  exp_num_faces = 50, // number of different faces to use per experiment  *yuval
+  repetitions = 4, // number of repetitions of each face   *yuval
+  total_num_faces = 300, // total number of faces in the database (e.g 300- for one gender only) (images file) *yuval
+  train_repetitions = 25,
+  train_alpha = 0.4,
+  trialLength = 0, // 0 is no limit
+  fade_in_time = 1,
+  fade_out_time = 15,
+  fade_out_length = 5,
+  training_allowed_repeat = 1,
+  experiment_performance_thresh = .85,
+  experiment_performance_trials = 20,
+  train_performance_thresh = .85,     ///////remember to return to 0.85
+  experiment_RT_trials = 8,
+  experiment_RT_trial_threshold = 5,
+  experiment_RT_threshold = 300,
+  sProblemCrit = 8,
+  bProblemCrit = 2;
+
+var bRMS_practice = {
+  type: "bRMS",
+  stimulus: "card.png",
+  timing_post_trial: 100,
+  visUnit: function() {
+    return unitSize
+  },
+  within_ITI: ITI - 100
+};
+  ---------------------------------------------------BRMS PART----------------------------------------------- **/
+
+
 
 // Trial to write all zoom events to data
 // this will store the zoom_event data in the data for this trial.
