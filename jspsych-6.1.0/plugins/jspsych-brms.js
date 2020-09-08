@@ -132,7 +132,7 @@ jsPsych.plugins["bRMS"] = (function() {
 
       // Hide mouse
       var stylesheet = document.styleSheets[0];
-      stylesheet.insertRule("* {cursor: none;}", stylesheet.cssRules.length);
+      //stylesheet.insertRule("* {cursor: none;}", stylesheet.cssRules.length);
 
       var rWidth = 6 * trial.visUnit,
         rHeight = 6 * trial.visUnit,
@@ -246,7 +246,7 @@ jsPsych.plugins["bRMS"] = (function() {
         display_element.innerHTML = '';
 
         // Return mouse
-        stylesheet.deleteRule(stylesheet.cssRules.length - 1);
+        //stylesheet.deleteRule(stylesheet.cssRules.length - 1);
 
         // move on to the next trial
         setTimeout(function() {
@@ -337,8 +337,7 @@ jsPsych.plugins["bRMS"] = (function() {
         ctx.fillRect(0, 0, frameWidth, frameHeight)
         // Fill rect
         for (var j = 0; j < trial.rectNum; j++) {
-          ctx.fillStyle = trial.colorOpts[Math.floor(Math.random() *
-            trial.colorOpts.length)];
+          ctx.fillStyle = trial.colorOpts[Math.floor(Math.random() * trial.colorOpts.length)];
           ctx.fillRect(Math.round(Math.random() *
               (rectRange[2] - rectRange[0]) + rectRange[0]),
             Math.round(Math.random() * (rectRange[3] - rectRange[1]) + rectRange[1]),

@@ -137,7 +137,7 @@ jsPsych.plugins["bRMS-test"] = (function() {
 
       // Hide mouse
       var stylesheet = document.styleSheets[0];
-      stylesheet.insertRule("* {cursor: none;}", stylesheet.cssRules.length);
+      //stylesheet.insertRule("* {cursor: none;}", stylesheet.cssRules.length);
 
       var rWidth = 6 * trial.visUnit,
         rHeight = 6 * trial.visUnit,
@@ -251,7 +251,7 @@ jsPsych.plugins["bRMS-test"] = (function() {
         display_element.innerHTML = '';
 
         // Return mouse
-        stylesheet.deleteRule(stylesheet.cssRules.length - 1);
+        //stylesheet.deleteRule(stylesheet.cssRules.length - 1);
 
         // move on to the next trial
         setTimeout(function() {

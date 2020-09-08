@@ -23,6 +23,17 @@
     <link href="jspsych-6.1.0/css/jquery-ui.css" rel="stylesheet" type="text/css"></link>
     <link href="jspsych-6.1.0/css/styles.css" rel="stylesheet" type="text/css"></link>
     
+    <script src="jspsych-6.1.0/lib/jquery-min.js" type="text/javascript"></script>
+  
+    <script src="jspsych-6.1.0/lib/underscore-min.js" type="text/javascript"></script>
+  
+    <script src="jspsych-6.1.0/lib/backbone-min.js" type="text/javascript"></script>
+  
+    <script src="jspsych-6.1.0/lib/TweenMax.min.js"></script>
+    <script src="jspsych-6.1.0/lib/CustomEase.js"></script>
+
+    <script src="js/utils.js" type="text/javascript"></script>
+
     <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body></body>
@@ -235,6 +246,32 @@ var afterPracticeText = [
     
 ];
 
+
+// Parameters for brms ------- can delete later ***** YH
+var ITI = 1000,
+  time_limit = 60 * (60 * 1000),
+  stimAlphas = 0.4,
+  unitSize = 4,
+  breakEvery = 50,
+  exp_num_faces = 50, // number of different faces to use per experiment  *yuval
+  repetitions = 4, // number of repetitions of each face   *yuval
+  total_num_faces = 300, // total number of faces in the database (e.g 300- for one gender only) (images file) *yuval
+  train_repetitions = 25,
+  train_alpha = 0.4,
+  trialLength = 0, // 0 is no limit
+  fade_in_time = 1,
+  fade_out_time = 15,
+  fade_out_length = 5,
+  training_allowed_repeat = 1,
+  experiment_performance_thresh = .85,
+  experiment_performance_trials = 20,
+  train_performance_thresh = .85,     ///////remember to return to 0.85
+  experiment_RT_trials = 8,
+  experiment_RT_trial_threshold = 5,
+  experiment_RT_threshold = 300,
+  sProblemCrit = 8,
+  bProblemCrit = 2;
+
 var introduction_procedure = {
     timeline: [
         {
@@ -246,9 +283,9 @@ var introduction_procedure = {
 
             
         },
-        {
+        /**{
             type: 'virtual-chin'
-        },
+        }, **/
         {
             type: 'html-keyboard-response',
             timeline: preCalibInsText,
@@ -265,6 +302,21 @@ var introduction_procedure = {
             type: 'html-keyboard-response',
             timeline: instructionsText,
             timing_post_trial: 400
+        },
+        {
+          type: "bRMS",
+          stimulus: "card.png",
+          timing_post_trial: 100,
+          visUnit: 4,
+          within_ITI: 200,
+          timing_response: trialLength,
+          fade_out_time: fade_out_time,
+          fade_in_time: fade_in_time,
+          fade_out_length: fade_out_length,
+          stimulus_alpha: train_alpha,
+          colorOpts: ['#FF0000', '#00FF00', '#0000FF',
+                       '#FFFF00', '#FF00FF', '#00FFFF'
+                     ]
         }
     ]
 }
