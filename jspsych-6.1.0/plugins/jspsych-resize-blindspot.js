@@ -8,12 +8,12 @@
 *
 **/
 
-jsPsych.plugins["resize"] = (function() {
+jsPsych.plugins["resize-blindspot"] = (function() {
 
     var plugin = {};
   
     plugin.info = {
-      name: 'resize',
+      name: 'resize-blindspot',
       description: '',
       parameters: {
         item_height: {

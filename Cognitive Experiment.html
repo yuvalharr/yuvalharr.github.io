@@ -14,6 +14,7 @@
     <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-virtual-chin.js"></script>
+    
     <script src="jspsych-6.1.0/plugins/jspsych-brms.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-brms-test.js"></script>
     <script src= "jspsych-6.1.0/jquery.min.js"></script>
@@ -283,14 +284,15 @@ var introduction_procedure = {
 
             
         },
+        
         /**{
             type: 'virtual-chin'
-        }, **/
+        }, 
         {
             type: 'html-keyboard-response',
             timeline: preCalibInsText,
             timing_post_trial: 400
-        },
+        }, **/
         {
             type: 'resize',
             item_width: 3 + 3/8,
@@ -298,16 +300,16 @@ var introduction_procedure = {
             prompt: "<p>Click and drag the lower right corner of the box until the box is the same size as a credit card held up to the screen.</p>",
             pixels_per_unit: 150 // YH - check what to put here
         },
-        {
+        /**{
             type: 'html-keyboard-response',
             timeline: instructionsText,
             timing_post_trial: 400
-        },
+        }, **/
         {
           type: "bRMS",
           stimulus: "card.png",
           timing_post_trial: 100,
-          visUnit: 4,
+          visUnit: 5,
           within_ITI: 200,
           timing_response: trialLength,
           fade_out_time: fade_out_time,
@@ -318,6 +320,7 @@ var introduction_procedure = {
                        '#FFFF00', '#FF00FF', '#00FFFF'
                      ]
         }
+        
     ]
 }
 
