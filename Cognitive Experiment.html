@@ -14,9 +14,12 @@
     <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-virtual-chin.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-new-virtual-chin.js"></script>
+    <script src="jspsych-6.1.0/plugins/jspsych-new-resize.js"></script>
     
     <script src="jspsych-6.1.0/plugins/jspsych-brms.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-brms-test.js"></script>
+
     <script src= "jspsych-6.1.0/jquery.min.js"></script>
     <script src= "jspsych-6.1.0/jquery-ui.min.js"></script>
     <script src= "jspsych-6.1.0/svg.min.js"></script>
@@ -24,7 +27,10 @@
     <link href="jspsych-6.1.0/css/jquery-ui.css" rel="stylesheet" type="text/css"></link>
     <link href="jspsych-6.1.0/css/styles.css" rel="stylesheet" type="text/css"></link>
     
+    <!--
     <script src="jspsych-6.1.0/lib/jquery-min.js" type="text/javascript"></script>
+
+    -->
   
     <script src="jspsych-6.1.0/lib/underscore-min.js" type="text/javascript"></script>
   
@@ -33,7 +39,8 @@
     <script src="jspsych-6.1.0/lib/TweenMax.min.js"></script>
     <script src="jspsych-6.1.0/lib/CustomEase.js"></script>
 
-    <script src="js/utils.js" type="text/javascript"></script>
+    <script src="js/utils.js" type="text/javascript"></script> 
+    
 
     <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
 </head>
@@ -52,7 +59,7 @@ function replicate(arr, times) { // function to help make array of many 'L's and
      return res;
 }
 
-var num_img_pairs = 25,   // ENTER NUMBER OF STIMULI HERE
+var num_img_pairs = 4,   // ENTER NUMBER OF STIMULI HERE
     wrong_answers_message = 2, // at this num of wrong answers, every wrong answer will get a warning message (including this num)
     wrong_answers_abort = 4, // at this num of wrong answers, the exp will be aborted
     absent_images = [],
@@ -94,6 +101,22 @@ answers_L.push([0,2])
 answers_L.push([1,2])
 answers_L.push([1,2])
 answers_L.push([1,0]) // img 25
+answers_L.push([1,1]) 
+answers_L.push([0,1])
+answers_L.push([0,2])
+answers_L.push([0,2])
+answers_L.push([1,0]) // img_30  
+answers_L.push([0,2])
+answers_L.push([1,1]) 
+answers_L.push([0,2])
+answers_L.push([0,0])
+answers_L.push([1,2]) // img 35
+answers_L.push([0,3])
+answers_L.push([1,3])
+answers_L.push([1,1])
+answers_L.push([1,1])
+answers_L.push([1,1]) // img 40 
+
 
 
 // Make function to take L answers and make into R
@@ -161,18 +184,18 @@ window.onresize = function(){
   zoom_event.push({timestamp: performance.now(), zoom_ratio: window.devicePixelRatio});
 }
 
-// trial procedure to be repeated for each couple of images
 
 var preCalibInsText = [{
     stimulus: ["<div class='center'>Welcome to the study!<br> \
     <p>Your participation will help us investigate human precision and reaction-times.</p>\
-    <p>Please read the instructions carefully.</p>\
+    <p >Please read the instructions carefully.</p>\
     <p align='center'><i>Press the space bar to continue</i></p></div>"],
     choices: [32]
   },
   {
-    stimulus: ["<div class='center'><p>We will begin by calibrating the experiment \
-      for the size of your screen.</p>\
+    stimulus: ["<div class='center'><p>In order to begin, \
+      we first need to measure the size of your screen and the distance you are sitting from it.</p>\
+      <p>This will allow us to calibrate the experiment's presentation size specifically for you.</p>\
       <p>After this short calibration, we will continue with the main task of \
       this study.</p>\
       <p align='center'><i>Press the space bar to continue</i></p></div>"],
@@ -190,7 +213,7 @@ var preCalibInsText = [{
       <p>Any credit card will do.</p>\
       <p align='center'><i>Press the space bar to continue</i></p></div>"],
     choices: [32]
-  },
+  }/**,
   {
     stimulus: ["<div class='center'><p>Using your mouse, \
       you will be asked to adjust the size of an empty box, so that it matches the \
@@ -201,23 +224,24 @@ var preCalibInsText = [{
       you in their correct size.</p>\
       <p align='center'><i>Press the space bar to start the calibration stage</i></p></div>"],
     choices: [32]
-  }
+  }**/
   
 ];
 
 var instructionsText = [
   {
-    stimulus: ["<p style='font-size: 28px;'>We will now continue to the main task of this experiment.</p>\
+    stimulus: ["<p style='font-size: 28px;'>We finished the calibration stage! We will now continue to the main task of this experiment.</p>\
+                <p style='font-size: 28px;'><b>We remind you to make an effort to move as little as possible until the end of the task.</b></p>\
                 <p style='font-size: 28px;'><b>Please read the following instructions carefully.</b></p>\
     <p style='font-size: 24px;'><i>Press the space bar to continue to the instructions</i></p>"],
     choices: [32]
   },
   {
-    stimulus: ["<p style='font-size: 28px;'>In this part you will be asked to find a single flickering object within a scene.\
+    stimulus: ["<p style='font-size: 28px;' align='justify'>In this part you will be asked to find a single flickering object within a scene.\
     Each time you will be presented with one scene. This scene will be static, except for one single object that will be appearing and disappearing.\
     Your goal will be to detect this object as quickly and accurately as you can. We will ask you to place your finger over the space bar, and once you have found the object press the space bar <b>as quickly as possible.</b></p>\
-    <p style='font-size: 28px;'>For each scene, you will have 60 seconds to do so. After that you will be asked about the location of the object.</P>\
-    <p style='font-size: 28px;'>We will now continue with a short practice before starting the main task.</p>\
+    <p style='font-size: 28px;' align='justify'>For each scene, you will have 60 seconds to do so. After that you will be asked about the location of the object.</P>\
+    <p style='font-size: 28px;' align='justify'>We will now continue with a short practice before starting the main task.</p>\
     <p style='font-size: 24px;'><i>Press the space bar to continue</i></p>"],
     choices: [32]
   }
@@ -281,46 +305,40 @@ var introduction_procedure = {
             message: '<p>This experiment has to be performed on full-screen mode.</p>\
             <p>Please do not leave full-screen mode at any time throughout the experiment.</p>',
             button_label: 'Enter full-screen'
-
-            
         },
-        
-        /**{
-            type: 'virtual-chin'
-        }, 
         {
             type: 'html-keyboard-response',
             timeline: preCalibInsText,
             timing_post_trial: 400
-        }, **/
+        },
         {
-            type: 'resize',
+            type: 'virtual-chin'
+        },
+        {
+            type: 'new-resize',
             item_width: 3 + 3/8,
             item_height: 2 + 1/8,
-            prompt: "<p>Click and drag the lower right corner of the box until the box is the same size as a credit card held up to the screen.</p>",
-            pixels_per_unit: 150 // YH - check what to put here
+            prompt: "<p>Click and drag</p>",
+            pixels_per_unit: 150, // YH - check what to put here
+            card_width_px: function(){  
+              var last_trial_card_width =  jsPsych.data.get().last(1).values()[0].cardWidth_px; // card width in px from previous trial
+              return last_trial_card_width;
+            }
         },
-        /**{
+        {
+            type: 'animation',    // YH -this trial is here just to enable exp to advance from virtual-chin to html-keyboard-response- YH **
+            stimuli: ['img/demo1_absent.jpg'],
+            choices: [32],
+            sequence_reps: 1,
+            frame_isi: 0,
+            frame_time: 0.1,
+            prompt: '<p style="font-size: 28px;"></p>',
+        },
+        {
             type: 'html-keyboard-response',
             timeline: instructionsText,
             timing_post_trial: 400
-        }, **/
-        {
-          type: "bRMS",
-          stimulus: "card.png",
-          timing_post_trial: 100,
-          visUnit: 5,
-          within_ITI: 200,
-          timing_response: trialLength,
-          fade_out_time: fade_out_time,
-          fade_in_time: fade_in_time,
-          fade_out_length: fade_out_length,
-          stimulus_alpha: train_alpha,
-          colorOpts: ['#FF0000', '#00FF00', '#0000FF',
-                       '#FFFF00', '#FF00FF', '#00FFFF'
-                     ]
-        }
-        
+        }        
     ]
 }
 
@@ -333,7 +351,7 @@ var practice_procedure = {
             sequence_reps: 30,
             frame_isi: 0,
             frame_time: 500,
-            prompt: '<p style="font-size: 28px;">Press the <b>space bar</b> quickly after finding the flickering object</p>',
+            prompt: '<p></p> \<p style="font-size: 28px;">Press the <b>space bar</b> quickly after finding the flickering object</p>',
             on_start: function(){
                 document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
             },
@@ -361,10 +379,7 @@ var practice_procedure = {
             stimulus_width: '900',
             margin_horizontal: '50px',
             margin_vertical: '20px'
-            
-
         },
-        
         {
             type: 'html-keyboard-response',
             timeline: inPracticeText,
@@ -390,7 +405,8 @@ var practice_procedure = {
           type: 'image-keyboard-response',
             stimulus: ['detection grids/demo2.jpg'],
             choices: [32],
-            prompt: '<p style="font-size: 24px">When asked about the location, sometimes more then one answer may seem possible.<br>\
+            prompt: '<p></p> \
+                    <p style="font-size: 24px">When asked about the location, sometimes more then one answer may seem possible.<br>\
                      In any case like this, choose the option in which the major part of the object is located.</p>\
                      <p style="font-size: 24px">Press the space bar to continue</p>',
             stimulus_width: '900'
@@ -544,9 +560,18 @@ var trial_procedure = {
             margin_horizontal: '50px',
             margin_vertical: '20px',
             on_finish: function(data) {
+                var all_data = jsPsych.data.get().values();
                 if ( data.button_pressed == jsPsych.data.get().last(3).values()[0].col_row_answers[1] ) { //if button pressed is correct
                   data.correct_response = true;
+                  if (jsPsych.data.get().last(2).values()[0].correct_response == true) { // If both grids were correct ->
+                    
+                    // go back 2 trials, which means subtracting 2 from the array length, and 1 more to account for the 0 indexing
+                    all_data[all_data.length-3].success = true; 
+                  } else {
+                    all_data[all_data.length-3].success = false; 
+                  }
                 } else {
+                  all_data[all_data.length-3].success = false; 
                   data.correct_response = false;
                   if (jsPsych.data.get().last(3).values()[0].rt ) { // only if there was response during trial (rt exists)
                     if (jsPsych.data.get().last(2).values()[0].correct_response == true) { // in the second grid trial, add 1 only if previous grid was
@@ -630,6 +655,43 @@ var bRMS_practice = {
   },
   within_ITI: ITI - 100
 };
+{
+          type: "bRMS",
+          stimulus: "face.jpg",
+          timing_post_trial: 100,
+          visUnit: 5,
+          within_ITI: 200,
+          timing_response: trialLength,
+          fade_out_time: fade_out_time,
+          fade_in_time: fade_in_time,
+          fade_out_length: fade_out_length,
+          stimulus_alpha: train_alpha,
+          colorOpts: ['#FF0000', '#00FF00', '#0000FF',
+                       '#FFFF00', '#FF00FF', '#00FFFF'
+                     ],
+          on_start: function(){
+                document.querySelector('head').insertAdjacentHTML('beforeend', '<style id="cursor-toggle"> html { cursor: none; } </style>')
+            },
+          on_finish: function(){
+                document.querySelector('#cursor-toggle').remove()
+            }
+        },
+        
+        {
+          type: "bRMS",
+          stimulus: "face.jpg",
+          timing_post_trial: 100,
+          visUnit: 4,
+          within_ITI: 200,
+          timing_response: trialLength,
+          fade_out_time: fade_out_time,
+          fade_in_time: fade_in_time,
+          fade_out_length: fade_out_length,
+          stimulus_alpha: train_alpha,
+          colorOpts: ['#FF0000', '#00FF00', '#0000FF',
+                       '#FFFF00', '#FF00FF', '#00FFFF'
+                     ]
+        }
   ---------------------------------------------------BRMS PART----------------------------------------------- **/
 
 
@@ -671,22 +733,6 @@ var debrief = {
       choices: [32]
     },
     {
-      type: "survey-text",
-      questions: [{
-          prompt: "How old are you?",
-          columns: 20,
-          rows: 1,
-          value: ''
-        },
-        {
-          prompt: 'Have you been diagnosed with, or believe you have an attention deficit disorder?',
-          columns: 60,
-          rows: 1,
-          value: ''
-        }
-      ]
-    }, 
-    {
       type: "survey-multi-choice",
       questions: [{
           prompt: "What is your gender?",
@@ -709,6 +755,26 @@ var debrief = {
       ]
     },
     {
+      type: "survey-text",
+      questions: [{
+          prompt: "How old are you?",
+          columns: 20,
+          rows: 1,
+          value: '',
+          name: "age",
+          required: true
+        },
+        {
+          prompt: 'Have you been diagnosed with, or believe you have an attention deficit disorder?',
+          columns: 60,
+          rows: 1,
+          value: '',
+          name: "add",
+          required: true
+        }
+      ]
+    },
+    {
       type: 'survey-likert',
       questions: [{
         prompt: "How fluent are you in reading and understanding English?",
@@ -724,6 +790,7 @@ var debrief = {
         labels: ["1<br>Not at all", "2", "3", "4", "5<br>Absolutely clear"],
         required: true,
         name: "instructions"
+        
       }]
     },
     {
@@ -734,7 +801,8 @@ var debrief = {
         columns: 100,
         rows: 4,
         value: '',
-        name: "strategy"
+        name: "strategy",
+        required: true
       }]
     },
     {
@@ -768,6 +836,10 @@ var get_code = {
     choices: ['Done'],
     prompt: "<p>In order for your HIT to be submitted and for you to be paid, please copy the code above and paste it in the MTurk's HIT page.</p>"
 };
+
+var last_virtual_test = {
+  type: 'virtual-chin'
+}
 
 jsPsych.init({
     timeline: [introduction_procedure,practice_procedure, trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, get_code],

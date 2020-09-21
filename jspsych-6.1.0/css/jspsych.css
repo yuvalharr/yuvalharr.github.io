@@ -7,6 +7,10 @@
 
  @import url(https://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,400,700);
 
+html{
+   background-color: grey;
+ }
+
 /* Container holding jsPsych content */
 
  .jspsych-display-element {

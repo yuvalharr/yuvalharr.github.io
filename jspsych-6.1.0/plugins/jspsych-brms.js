@@ -123,6 +123,7 @@ jsPsych.plugins["bRMS"] = (function() {
   plugin.trial = function(display_element, trial) {
 
     // Clear previous
+    document.body.style.backgroundColor = "grey";
     display_element.innerHTML = '';
 
     setTimeout(function() {
@@ -244,6 +245,7 @@ jsPsych.plugins["bRMS"] = (function() {
 
         // clear the display
         display_element.innerHTML = '';
+        document.body.style.backgroundColor = "ghostwhite";
 
         // Return mouse
         //stylesheet.deleteRule(stylesheet.cssRules.length - 1);
