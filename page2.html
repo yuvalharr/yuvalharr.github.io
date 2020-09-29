@@ -14,7 +14,6 @@
     <script src="jspsych-6.1.0/plugins/jspsych-survey-multi-choice.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-survey-likert.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-virtual-chin.js"></script>
-    <script src="jspsych-6.1.0/plugins/jspsych-virtual-chin-2.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-new-virtual-chin.js"></script>
     <script src="jspsych-6.1.0/plugins/jspsych-new-resize.js"></script>
     
@@ -60,7 +59,7 @@ function replicate(arr, times) { // function to help make array of many 'L's and
      return res;
 }
 
-var num_img_pairs = 1,   // ENTER NUMBER OF STIMULI HERE
+var num_img_pairs = 2,   // ENTER NUMBER OF STIMULI HERE
     wrong_answers_message = 2, // at this num of wrong answers, every wrong answer will get a warning message (including this num)
     wrong_answers_abort = 4, // at this num of wrong answers, the exp will be aborted
     absent_images = [],
@@ -285,15 +284,19 @@ var introduction_procedure = {
             button_label: 'Enter full-screen'
         },
         {
-          type: 'virtual-chin-2'
+            type: 'call-function',
+            func: function() {
+                var urlvar = jsPsych.data.urlVariables();
+                var id = urlvar.id
+                var card_width_px = Number(urlvar.width)
+                var distance = Number(urlvar.distance)
+                jsPsych.data.addProperties({subject_id: id, card_width_px: card_width_px, distance: distance});
+            }
         },
         {
             type: 'html-keyboard-response',
             timeline: preCalibInsText,
             timing_post_trial: 400
-        },
-        {
-            type: 'virtual-chin'
         },
         {
             type: 'new-resize',
@@ -302,7 +305,7 @@ var introduction_procedure = {
             prompt: "<p>Click and drag</p>",
             pixels_per_unit: 150, // YH - check what to put here
             card_width_px: function(){  
-              var last_trial_card_width =  jsPsych.data.get().last(1).values()[0].cardWidth_px; // card width in px from previous trial
+              var last_trial_card_width =  jsPsych.data.get().last(2).values()[0].card_width_px; // card width in px from previous trial
               return last_trial_card_width; 
             } 
         }, 
@@ -954,7 +957,81 @@ var bRMS_block = {
   }  
 };
 
-//endregion BRMS main task
+//#endregion BRMS main task
+
+//#region BRMS animation test
+//** Animation test ** //
+var test_animation = {
+    type: 'bRMS-test',
+    timeline: [{
+        stimulus: "f001.jpg",
+        prompt: "<p>Testing for the \
+      compatibility of your personal computer with this study.</p> \
+      <p>This will take approximately 15 seconds more.</p>"
+      },
+      {
+        stimulus: "f002.jpg",
+        prompt: "<p>Testing for the \
+      compatibility of your personal computer with this study.</p> \
+      <p>This will take approximately 10 seconds more.</p>"
+      },
+      {
+        stimulus: "m001.jpg",
+        prompt: "<p>Testing for the \
+      compatibility of your personal computer with this study.</p> \
+      <p>This will take approximately 5 seconds more.</p>"
+      }
+    ],
+    data: {
+      timing_response: 4,
+      stimulus_alpha: stimAlphas,
+      timing_post_trial: 100,
+      within_ITI: ITI - 100,
+      fade_in_time: fade_in_time,
+      fade_out_time: fade_out_time,
+      fade_out_length: fade_out_length
+	},
+    stimulus_alpha: stimAlphas,
+    timing_post_trial: 100,
+    within_ITI: ITI - 100,
+    timing_response: 4,
+    fade_in_time: fade_in_time,
+    fade_out_time: fade_out_time,
+    fade_out_length: fade_out_length,
+    visUnit: 4,
+    choices: ["none"],
+    colorOpts: ['#FF0000', '#00FF00', '#0000FF',
+                       '#FFFF00', '#FF00FF', '#00FFFF'
+                     ]
+  },
+  poor_animation = {
+    type: 'html-keyboard-response',
+    conditional_function: function() {
+      if (jsPsych.data.get().last(3).select('sProblem').sum() > sProblemCrit ||
+        jsPsych.data.get().last(3).select('bProblem').sum() > bProblemCrit) {
+        return true;
+      } else {
+          console.log ('hellohellohello')
+        return false;
+      }
+    },
+    timeline: [{
+      stimulus: "<div class = 'center'>\
+<p>It seems that the animation is not presented correctly on your computer.</p>\
+<p>This may be due to old hardware, or too many open applications.</p>\
+<p><b>Please return this study</b>.</p>\
+<p>We'll be glad to see you participating in future studies.</p>\
+<p>For any questions, please email \
+yuval.harris@mail.huji.ac.il</p>\
+<p>Press the space bar to continue.</p></div>"
+    }],
+    choices: [32],
+    //** needed eventualy **//
+    on_finish: function() {			 
+			 jsPsych.endExperiment('The experiment has been aborted');
+			}
+  }
+//#endregion BRMS animation test
 //#endregion ---------------------------------------------------BRMS PART----------------------------------------------
 
 
@@ -1103,12 +1180,8 @@ var get_code = {
     prompt: "<p>In order for your HIT to be submitted and for you to be paid, please copy the code above and paste it in the MTurk's HIT page.</p>"
 };
 
-var last_virtual_test = {
-  type: 'virtual-chin'
-}
-
 jsPsych.init({
-    timeline: [introduction_procedure,practice_procedure, trial_procedure, brms_instructions ,secChanceLoop, mainBlockIns, bRMS_block, /**record_zoom_events, record_window_events, record_mturk_data ,**/ debrief, get_code],
+    timeline: [test_animation,poor_animation, introduction_procedure,practice_procedure, trial_procedure, brms_instructions ,secChanceLoop, mainBlockIns, bRMS_block, /**record_zoom_events, record_window_events, record_mturk_data ,**/ debrief, get_code],
     on_finish: function() {
       alert("The experiment is over. Thank you for your participation!");
     },

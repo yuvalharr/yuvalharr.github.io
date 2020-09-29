@@ -374,7 +374,7 @@ jsPsych.plugins["bRMS-test"] = (function() {
       display_element.append(cover);
 
       var ctx = cover.getContext("2d");
-      ctx.fillStyle = 'grey';
+      ctx.fillStyle = 'ghostwhite';
       ctx.fillRect(0, 0, frameWidth+50, frameHeight+50)
 
       var cover_text  = document.createElement('div');
