@@ -931,78 +931,7 @@ var bRMS_block = {
   }  
 };
 //#endregion BRMS main task
-//#region BRMS animation test
-//** Animation test ** //
-var test_animation = {
-    type: 'bRMS-test',
-    timeline: [{
-        stimulus: "f001.jpg",
-        prompt: "<p>Testing for the \
-      compatibility of your personal computer with this study.</p> \
-      <p>This will take approximately 15 seconds more.</p>"
-      },
-      {
-        stimulus: "f002.jpg",
-        prompt: "<p>Testing for the \
-      compatibility of your personal computer with this study.</p> \
-      <p>This will take approximately 10 seconds more.</p>"
-      },
-      {
-        stimulus: "m001.jpg",
-        prompt: "<p>Testing for the \
-      compatibility of your personal computer with this study.</p> \
-      <p>This will take approximately 5 seconds more.</p>"
-      }
-    ],
-    data: {
-      timing_response: 4,
-      stimulus_alpha: stimAlphas,
-      timing_post_trial: 100,
-      within_ITI: ITI - 100,
-      fade_in_time: fade_in_time,
-      fade_out_time: fade_out_time,
-      fade_out_length: fade_out_length
-	},
-    stimulus_alpha: stimAlphas,
-    timing_post_trial: 100,
-    within_ITI: ITI - 100,
-    timing_response: 4,
-    fade_in_time: fade_in_time,
-    fade_out_time: fade_out_time,
-    fade_out_length: fade_out_length,
-    visUnit: 4,
-    choices: ["none"],
-    colorOpts: ['#FF0000', '#00FF00', '#0000FF',
-                       '#FFFF00', '#FF00FF', '#00FFFF'
-                     ]
-  },
-  poor_animation = {
-    type: 'html-keyboard-response',
-    conditional_function: function() {
-      if (jsPsych.data.get().last(3).select('sProblem').sum() > sProblemCrit ||
-        jsPsych.data.get().last(3).select('bProblem').sum() > bProblemCrit) {
-        return true;
-      } else {
-          return false;
-      }
-    },
-    timeline: [{
-      stimulus: "<div class = 'center'>\
-                <p>It seems that the animation is not presented correctly on your computer.</p>\
-                <p>This may be due to old hardware, or too many open applications.</p>\
-                <p><b>Please return this study</b>.</p>\
-                <p>We'll be glad to see you participating in future studies.</p>\
-                <p>For any questions, please email \
-                yuval.harris@mail.huji.ac.il</p>\
-                <p>Press the space bar to continue.</p></div>"
-    }],
-    choices: [32],
-    //** needed eventualy **//
-    on_finish: function() {			 
-			 jsPsych.endExperiment('The experiment has been aborted');
-			}
-  }
-//#endregion BRMS animation test
+
 //#endregion BRMS PART
 
 //#region zoom/window/mturk record
