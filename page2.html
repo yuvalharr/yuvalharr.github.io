@@ -58,9 +58,9 @@ var ITI = 1000,
     unitSize = 4,
     breakEvery = 4,
     exp_num_faces = 4, // number of different faces to use per experiment  *yuval
-    repetitions = 4, // number of repetitions of each face   *yuval
+    repetitions = 1, // number of repetitions of each face   *yuval
     total_num_faces = 300, // total number of faces in the database (e.g 300- for one gender only) (images file) *yuval
-    train_repetitions = 5,
+    train_repetitions = 2,
     train_alpha = 0.4,
     trialLength = 0, // 0 is no limit
     fade_in_time = 1,
@@ -211,48 +211,7 @@ window.onresize = function(){
 }
 //#endregion add zoom events to data
 
-var preCalibInsText = [{
-    stimulus: ["<div class='center'>Welcome to the study!<br> \
-    <p>Your participation will help us investigate human precision and reaction-times.</p>\
-    <p >Please read the instructions carefully.</p>\
-    <p align='center'><i>Press the space bar to continue</i></p></div>"],
-    choices: [32]
-  },
-  {
-    stimulus: ["<div class='center'><p>In order to begin, \
-      we first need to measure the size of your screen and the distance you are sitting from it.</p>\
-      <p>This will allow us to calibrate the experiment's presentation size specifically for you.</p>\
-      <p>After this short calibration, we will continue with the main task of \
-      this study.</p>\
-      <p align='center'><i>Press the space bar to continue</i></p></div>"],
-    choices: [32]
-  },
-  {
-    stimulus: ["<div class='center'><p>First, please adjust your web browser's zoom level to 100%, and set your screen brightness to the maximum level.</p>\
-      <p>We ask you to not change this throughout the whole course of the experiment.</p>\
-      <p align='center'><i>Press the space bar to continue</i></p></div>"],
-    choices: [32]
-  },
-  {
-    stimulus: ["<div class='center'><p>For the calibration stage, you will need a credit card.</p>\
-      <p>Don't worry, the credit card will be used just as a size measuring tool.</p>\
-      <p>Any credit card will do.</p>\
-      <p align='center'><i>Press the space bar to continue</i></p></div>"],
-    choices: [32]
-  }/**,
-  {
-    stimulus: ["<div class='center'><p>Using your mouse, \
-      you will be asked to adjust the size of an empty box, so that it matches the \
-      size of your credit card.</p>\
-      <p>Take your time in doing so, as this measurement\
-      will be used throughout the \
-      study to make sure images are presented to \
-      you in their correct size.</p>\
-      <p align='center'><i>Press the space bar to start the calibration stage</i></p></div>"],
-    choices: [32]
-  }**/
-  
-];
+
 
 var instructionsText = [
   {
@@ -302,7 +261,7 @@ var introduction_procedure = {
         {
             type: 'fullscreen',
             fullscreen_mode: true,
-            message: '<p>This experiment has to be performed on full-screen mode.</p>\
+            message: '<p>You are asked to to enter full-screen mode once again.</p>\
             <p>Please do not leave full-screen mode at any time throughout the experiment.</p>',
             button_label: 'Enter full-screen'
         },
@@ -315,11 +274,6 @@ var introduction_procedure = {
                 var distance = Number(urlvar.distance)
                 jsPsych.data.addProperties({subject_id: id, card_width_px: card_width_px, distance: distance});
             }
-        },
-        {
-            type: 'html-keyboard-response',
-            timeline: preCalibInsText,
-            timing_post_trial: 400
         },
         {
             type: 'new-resize',
@@ -1077,9 +1031,13 @@ var get_code = {
 };
 //#endregion DEBRIEF
 
+var trial_chin = {
+    type: 'virtual-chin'
+}
+
 //INITIATE EXPERIMENT
 jsPsych.init({
-    timeline: [test_animation,poor_animation, introduction_procedure,practice_procedure, trial_procedure, brms_instructions ,secChanceLoop, mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief, get_code],
+    timeline: [introduction_procedure,practice_procedure, trial_procedure, brms_instructions ,secChanceLoop, mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief, trial_chin ,get_code],
     on_finish: function() {
       alert("The experiment is over. Thank you for your participation!");
     },

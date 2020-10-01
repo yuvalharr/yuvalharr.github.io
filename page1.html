@@ -73,14 +73,44 @@ var ITI = 1000,
     sProblemCrit = 8,
     bProblemCrit = 2;
 
-        var fullScreen = {
+
+    var preCalibInsText = [{
+    stimulus: ["<div class='center'>Welcome to the study!<br> \
+    <p>Your participation will help us investigate human precision and reaction-times.</p>\
+    <p >Please read the instructions carefully.</p>\
+    <p align='center'><i>Press the space bar to continue</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>In order to begin, \
+      we first need to measure the size of your screen and the distance you are sitting from it.</p>\
+      <p>This will allow us to calibrate the experiment's presentation size specifically for you.</p>\
+      <p>After this short calibration, we will continue with the main task of \
+      this study.</p>\
+      <p align='center'><i>Press the space bar to continue</i></p></div>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<div class='center'><p>First, please adjust your web browser's zoom level to 100%, and set your screen brightness to the maximum level.</p>\
+      <p>If you are not sure how to do this just leave it as it is now - no worries.</p>\
+      <p>We ask you to not change these settings throughout the whole course of the experiment.</p>\
+      <p align='center'><i>Press the space bar to continue</i></p></div>"],
+    choices: [32]
+  }  
+];
+
+
+
+var fullScreen = {
         type: 'fullscreen',
         fullscreen_mode: true,
-        message: '<p>Please, press the button for full screen mode</p>',
+        message: '<p>We are ready to start! Please press the button for full screen mode</p>',
         button_label: 'Full screen'    
         }
+
         
-        var test_animation = {
+
+var test_animation = {
           type: 'bRMS-test',
           timeline: [{
               stimulus: "f001.jpg",
@@ -113,7 +143,7 @@ var ITI = 1000,
           stimulus_alpha: stimAlphas,
           timing_post_trial: 100,
           within_ITI: ITI - 100,
-          timing_response: 4,
+          timing_response: 0.5,
           fade_in_time: fade_in_time,
           fade_out_time: fade_out_time,
           fade_out_length: fade_out_length,
@@ -149,30 +179,36 @@ var ITI = 1000,
   			}
     }
         
-    var take_id = {
-          type: 'survey-text',
-          questions: [{
-            prompt: "Please enter your MTurk Worker ID",
-            name: "ID",
-            columns: 18,
-            rows: 1,
-            value: ''
-            }]
-    }
+var take_id = {
+        type: 'survey-text',
+        questions: [{
+          prompt: "Please enter your MTurk Worker ID",
+          name: "ID",
+          columns: 18,
+          rows: 1,
+          value: ''
+          }]
+        }    
 
-    var trial_chin = {
-        type: 'virtual-chin'
-    }
-               
-timeline.push(test_animation, poor_animation, fullScreen, take_id, trial_chin);
+var pre_calib = {
+            type: 'html-keyboard-response',
+            timeline: preCalibInsText,
+            timing_post_trial: 400
+        }
+
+var trial_chin = {
+    type: 'virtual-chin'
+}
+
+timeline.push(test_animation, poor_animation, fullScreen, take_id, pre_calib ,trial_chin);
         
 jsPsych.init({
           timeline: timeline,
           on_finish: function() {
                             
                           //window.location.href = "https://y7uvs6a1rt.cognition.run/"
-                          var cardWidth = jsPsych.data.get().values()[5].cardWidth_px
-                          var viewing_distance = jsPsych.data.get().values()[5].viewing_distance_cm
+                          var cardWidth = jsPsych.data.get().values()[8].cardWidth_px
+                          var viewing_distance = jsPsych.data.get().values()[8].viewing_distance_cm
                           var id = jsPsych.data.get().values()[4].responses
                           id = id.substring(7, id.length-2)
                           console.log(id.substring(7, id.length-2))

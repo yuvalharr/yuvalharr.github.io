@@ -190,8 +190,7 @@ jsPsych.plugins['virtual-chin'] = (function() {
               // You can then DO SOMETHING HERE TO PROCEED TO YOUR NEXT STEPS OF THE EXPERIMENT. For example, add a button to go to the next page.
               // display_element.innerHTML = `<p>"Press space bar to start the experiment.</p>`
               display_element.innerHTML =
-                "<p style='font-size:160%;'> When you are ready, please press space bar to start the experiment.</p>" +
-                `<p style='font-size:160%;'>  Your viewing distance is about ${dist.toString()} cm </p>`
+                "<p style='font-size:160%;'> You are being redirected to the main study.</p>" 
 
               return trial_data.viewing_distance_cm;
           }
@@ -233,7 +232,7 @@ jsPsych.plugins['virtual-chin'] = (function() {
           html += '<!-- <h2 class="bolded-blue">Task 2: Where’s your blind spot?</h2> -->';
           html += "<h3>Now, let's quickly test how far away you are sitting.</h3>";
           html += "<p align='justify'>You might know that vision tests at a doctor's practice often involve chinrests; the doctor basically asks you to sit away from a screen in a specific distance. We do this here with a 'virtual chinrest'.</p>";
-          html += "<p align='justify'>After this test you will be asked to stay at the same position you are sitting until the end of the experiment, so please take a few moments to find a comfortable sitting position.</p>";
+          html += "<p align='justify'><b>After this test you will be asked to stay at the same position you are sitting until the end of the experiment, so please take a few moments to find a comfortable sitting position.</b></p>";
           
           html += '<h3>Instructions</h3>';
           html += '<p align="left">1. Put your finger over the <b>space bar</b> on your keyboard.</p>';
