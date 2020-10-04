@@ -47,7 +47,7 @@
 document.body.style.backgroundColor = "ghostwhite";
 
 // Change Blindness paramaters
-var num_img_pairs = 2,   // ENTER NUMBER OF STIMULI HERE
+var num_img_pairs = 1,   // ENTER NUMBER OF STIMULI HERE
     wrong_answers_message = 2, // at this num of wrong answers, every wrong answer will get a warning message (including this num)
     wrong_answers_abort = 4 // at this num of wrong answers, the exp will be aborted
 
@@ -59,20 +59,20 @@ var ITI = 1000,
     breakEvery = 4,
     exp_num_faces = 4, // number of different faces to use per experiment  *yuval
     repetitions = 1, // number of repetitions of each face   *yuval
-    total_num_faces = 300, // total number of faces in the database (e.g 300- for one gender only) (images file) *yuval
-    train_repetitions = 2,
+    total_num_faces = 30, // total number of faces in the database (images file) *yuval
+    train_repetitions = 10, // number of repeats of the practice procedure (at this point 4 stimuli)
     train_alpha = 0.4,
     trialLength = 0, // 0 is no limit
     fade_in_time = 1,
     fade_out_time = 15,
     fade_out_length = 5,
     training_allowed_repeat = 1,
-    experiment_performance_thresh = .85,
-    experiment_performance_trials = 20,
-    train_performance_thresh = .60,     ///////remember to return to 0.85
+    experiment_performance_thresh = .75,
+    experiment_performance_trials = 10,
+    train_performance_thresh = .85,     ///////remember to return to 0.85
     experiment_RT_trials = 8,
     experiment_RT_trial_threshold = 5,
-    experiment_RT_threshold = 300,
+    experiment_RT_threshold = 30,
     sProblemCrit = 8,
     bProblemCrit = 2;
 
@@ -583,61 +583,65 @@ var trial_procedure = {
 //#region BRMS practice
 
 var instruction_text = [{
-    stimulus: ["<p>First part is done!</p>\
-    <p>You've finished about half of the study, great job!</p>\
-    <p align='center'><i>Press the space bar to continue.</i></p>"],
+    stimulus: ["<p style='font-size: 28px;'>First part is done!</p>\
+    <p style='font-size: 28px;'>You've finished about half of the study, great job!</p>\
+    <p style='font-size: 24px;' align='center'><i>Press the space bar to continue.</i></p>"],
     choices: [32]
   },
   {
-    stimulus: ["<p>We will now go on to the second task.</p>\
-    <p>Please read the following instructions carefully.</p>\
-    <p align='center'><i>Press the space bar to continue.</i></p>"],
+    stimulus: ["<p style='font-size: 28px;'>We will now go on to the second task.</p>\
+    <p style='font-size: 28px;'>Please read the following instructions carefully.</p>\
+    <p style='font-size: 24px;' align='center'><i>Press the space bar to continue.</i></p>"],
     choices: [32]
   },
   {
-    stimulus: ["<div class = 'center'><p>In this task you will be presented with rapidly \
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>In this task you will be presented with rapidly \
       changing patterns of rectangles. Through these rectangles faces will appear. Your task will be to indicate the location of \
       the faces, or any part of them, as soon as they appear.</p>\
-      <p align='center'><i>Press the space bar to continue.</i></p></div>"
+      <p style='font-size: 24px;' align='center'><i>Press the space bar to continue.</i></p></div>"
     ],
     choices: [32]
   },
   {
-    stimulus: ["<div class = 'center'><p>If a face appeared in the right half \
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>If a face appeared in the right half \
       of the screen, press the right key. If a face appeared in the left half \
       of the screen, press the left key.</p>\
-      <p align='center'><i>Press the space bar to continue.</i></p></div>"
+      <p style='font-size: 24px;' align='center'><i>Press the space bar to continue.</i></p></div>"
     ],
     choices: [32]
   } ,
   {
-    stimulus: ["<div class = 'center'><p>Please perform this task as accurately \
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>Please perform this task as accurately \
       and quickly as you can.</p>\
-      <p align='center'><i>Press the space bar to continue.</i></p></div>"],
+      <p style='font-size: 24px;' align='center'><i>Press the space bar to continue.</i></p></div>"],
     choices: [32]
   },
   {
-    stimulus: ["<div class = 'center'><p>During the task, please focus your gaze at\
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>During the task, please focus your gaze at\
        the plus sign in the middle.<br>Even though the faces appear to the left\
         and right of the plus sign, it is important that you look at the plus \
         sign at all times.</p>\
-        <p align='center'></i>Press the space bar to continue.</i></p></div>"],
+        <p style='font-size: 24px;' align='center'></i>Press the space bar to continue.</i></p></div>"],
     choices: [32]
   },
   {
-    stimulus: ["<div class = 'center'><p>We will start with a short practice.</p>\
-        <p align='center'></i>Press the space bar to continue.</i></p></div>"],
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>We will start with a short practice.</p>\
+        <p style='font-size: 24px;' align='center'></i>Press the space bar to continue.</i></p></div>"],
     choices: [32]
   },
   {
     stimulus: ["<div class='center'>\
       <img src='keys.jpg'></img>\
-      <p>Place your fingers on the 'D' and 'K' keys as shown in the picture, \
+      <p style='font-size: 28px;'>Place your fingers on the 'D' and 'K' keys as shown in the picture, \
       and press either one of these keys to start the practice.</p></div>"],
     choices: [68, 75]
   }
 ];
 
+var practice_stimuli = [];
+for (i = 0; i < train_repetitions; i++) { //make train stim timeline
+    practice_stimuli.push({stimuli: "faces/training/p_" + i + ".jpg"})
+}
 var brms_instructions = {
   type: 'html-keyboard-response',
   timeline: instruction_text,
@@ -670,7 +674,7 @@ var bRMS_practice_procedure = {
             },
       data: {
           //stimulus: jsPsych.timelineVariable('practice_stimuli'),
-          stimulus_type: 'training',
+          trial_type: 'brms-training',
           timing_response: trialLength,
           fade_out_time: fade_out_time,
           fade_in_time: fade_in_time,
@@ -679,19 +683,16 @@ var bRMS_practice_procedure = {
       } 
     }
   ],
-  timeline_variables: [
-    {stimuli: "face.jpg"},
-    {stimuli: "card.png"}
-  ],
-  randomize_order: true,
-  repetitions: train_repetitions
+  timeline_variables: practice_stimuli,
+  randomize_order: true
+  
 };
  
 var performanceMSG_practice = {
     type: 'html-keyboard-response',
     stimulus: ["<div class='center'>\
-  <p>You pressed the wrong key too many times during the practice block.</p>\
-  <p>Press either the 'D' or 'K' keys to repeat it.</p></div>"],
+  <p style='font-size: 28px;'>You pressed the wrong key too many times during the practice block.</p>\
+  <p style='font-size: 24px;'>Press either the 'D' or 'K' keys to repeat it.</p></div>"],
     choices: [68, 75],
     on_start: function(trial) {
       if (jsPsych.data.get().last(1).select('trial_type').values != 'bRMS') {
@@ -712,11 +713,11 @@ var performanceMSG_practice = {
     },
     timeline: [{
       stimulus: "<div class='center'>\
-  <p>It seems that you are not performing the task as instructed.</p>\
-  <p>Please return this study.</p>\
-  <p>If you feel that this is a mistake, please email \
+  <p style='font-size: 28px;'>It seems that you are not performing the task as instructed.</p>\
+  <p style='font-size: 28px;'>Please return this study.</p>\
+  <p style='font-size: 28px;'>If you feel that this is a mistake, please email \
   yuval.harris@mail.huji.ac.il</p>\
-  <p>Press the space bar to continue.</p></div>"
+  <p style='font-size: 28px;'>Press the space bar to continue.</p></div>"
     }],
     choices: [32],
 
@@ -750,19 +751,19 @@ var secChanceLoop = {
 //#region BRMS main task
 
 var mainBlockText = [{
-    stimulus: ["<div class = 'center'><p>You have completed the practice block.</p>\
-  <p>You will now continue with the same task. The task may now be more \
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>You have completed the practice block.</p>\
+  <p style='font-size: 28px;'>You will now continue with the same task. The task may now be more \
   difficult.\
   You will have 3 short breaks. </p>\
-    <p>Press either the 'D' or the 'K' keys to continue.</p></div>"],
+    <p style='font-size: 24px;'>Press either the 'D' or the 'K' keys to continue.</p></div>"],
     choices: [68, 75]
   },
   {
-    stimulus: ["<div class = 'center'><p>During the task, please focus your gaze at\
+    stimulus: ["<div class = 'center'><p style='font-size: 28px;'>During the task, please focus your gaze at\
    the plus sign in the middle.<br>Even though the faces appear to the left\
     and right of the plus sign, it is important that you look at the plus \
     sign at all times.</p>\
-    <p>Press either the 'D' or the 'K' keys to continue.</p></div>"],
+    <p style='font-size: 24px;'>Press either the 'D' or the 'K' keys to continue.</p></div>"],
     choices: [68, 75]
   }
 ]
@@ -777,7 +778,11 @@ var mainBlockIns = {
 
 // Define stimuli for bRMS
 
-var used_images = ["f001.jpg","f002.jpg", "m001.jpg", "m002.jpg"] //creating 'used_images[]', holding all and only faces going to be used in the main block. *yuval
+
+var used_images = [] //creating 'used_images[]', holding all and only faces going to be used in the main block. *yuval
+for (i = 0; i < total_num_faces; i++) {
+    used_images.push('faces/' + i + '.jpg')
+}
 var brms_task_stimuli = [];
 
 
@@ -822,8 +827,8 @@ for (i = 0; i < repetitions; i++) { // Create a list of trials, repeating the ex
 /* Add breaks */
 var breakMsg = {
   type: "html-keyboard-response",
-  stimulus: ["<div class = 'center'><p>This is a break.</p>\
-  <p>Press the space bar to continue.</p>"],
+  stimulus: ["<div class = 'center'><p style='font-size: 28px;'>This is a break.</p>\
+  <p style='font-size: 24px;'>Press the space bar to continue.</p>"],
   choices: [32],
   timing_post_trial: 1600
 }
@@ -832,10 +837,10 @@ var breakMsg = {
 var behave = {
     type: "html-keyboard-response",
     timeline: [{
-      stimulus: "<div class = 'center'><p>It seems that you have pressed the wrong \
+      stimulus: "<div class = 'center'><p style='font-size: 28px;'>It seems that you have pressed the wrong \
   key many times recently.</p>\
-  <p>Please perform the task as accurately and as quickly as you can.</p>\
-  <p>Press the space bar to continue.</p>"
+  <p style='font-size: 28px;'>Please perform the task as accurately and as quickly as you can.</p>\
+  <p style='font-size: 24px;'>Press the space bar to continue.</p>"
     }],
     choices: [32],
     conditional_function: function() {
@@ -1027,7 +1032,7 @@ var get_code = {
     type: 'html-button-response',
     stimulus: '<p><b>xrVESi7LQxYmku5</b></p>',
     choices: ['Done'],
-    prompt: "<p>In order for your HIT to be submitted and for you to be paid, please copy the code above and paste it in the MTurk's HIT page.</p>"
+    prompt: "<p style='font-size: 28px;'>In order for your HIT to be submitted and for you to be paid, please copy the code above and paste it in the MTurk's HIT page.</p>"
 };
 //#endregion DEBRIEF
 
