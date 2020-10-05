@@ -367,8 +367,8 @@ var practice_procedure = {
             stimulus: ['detection grids/demo2.jpg'],
             choices: [32],
             prompt: '<p></p> \
-                    <p style="font-size: 24px">When asked about the location, sometimes more then one answer may seem possible.<br>\
-                     In any case like this, choose the option in which the major part of the object is located.</p>\
+                    <p style="font-size: 24px"><b>When asked about the location, sometimes more then one answer may seem possible.<br>\
+                     In any case like this, choose the option in which the major part of the object is located.</b></p>\
                      <p style="font-size: 24px">Press the space bar to continue</p>',
             stimulus_width: '900'
         },
@@ -417,7 +417,7 @@ var abort_trial = {
   type: 'html-keyboard-response',
   stimulus: "<div class = 'center'><p style='font-size: 28px;'>The task is still not being performed as instructed despite multiple warnings.</p> \
             <p style='font-size: 28px;'>The experiment will be aborted now.</p> \
-            <p style='font-size: 28px;'>If you feel that this is a mistake, please email us at <i>yuval.harris@mail.huji.ac.il</i>.</p> \
+            <p style='font-size: 28px;'>If you feel that this is a mistake, please email us at <i>yuval.harris@mail.huji.ac.il</i> or contact us via MTurk.</p> \
             <p style='font-size: 24px;'>Press the space bar to quit</p>",
   choices: [32],
   on_finish: function(){
@@ -706,7 +706,12 @@ var performanceMSG_practice = {
     type: 'html-keyboard-response',
     conditional_function: function() {
       if (jsPsych.data.get().last(1).select('train_repeats').values[0] > training_allowed_repeat) {
-        return true;
+          if (jsPsych.data.get().last(train_repetitions).select('acc').mean() < train_performance_thresh) {
+              return true
+          }
+        else {
+            return false;
+        }
       } else {
         return false;
       }
@@ -715,8 +720,8 @@ var performanceMSG_practice = {
       stimulus: "<div class='center'>\
   <p style='font-size: 28px;'>It seems that you are not performing the task as instructed.</p>\
   <p style='font-size: 28px;'>Please return this study.</p>\
-  <p style='font-size: 28px;'>If you feel that this is a mistake, please email \
-  yuval.harris@mail.huji.ac.il</p>\
+  <p style='font-size: 28px;'>If you feel that this is a mistake, please email us at \
+  yuval.harris@mail.huji.ac.il or contact us via MTurk</p>\
   <p style='font-size: 28px;'>Press the space bar to continue.</p></div>"
     }],
     choices: [32],
