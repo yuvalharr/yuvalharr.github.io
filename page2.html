@@ -458,21 +458,21 @@ var trial_procedure = {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 200,
+            trial_duration: 1000,
             prompt: '<p style="font-size: 36px;">3</p>'
         },
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 200,
+            trial_duration: 1000,
             prompt: '<p style="font-size: 36px;">2</p>'
         },
         {
             type: 'html-keyboard-response',
             stimulus: '<p style="font-size: 48px;">ready?</p>',
             choices: jsPsych.NO_KEYS,
-            trial_duration: 200,
+            trial_duration: 1000,
             prompt: '<p style="font-size: 36px;">1</p>',
             post_trial_gap: 0
         },
@@ -651,16 +651,6 @@ var brms_instructions = {
 var bRMS_practice_procedure = {
   timeline: [
     {
-              
-        type: "call-function",
-        async: true,
-        func: function(done) {
-          jsPsych.pluginAPI.preloadImages(jsPsych.timelineVariable('stimuli', true), function() {
-            done({ preload: "success" });
-          })                
-        }
-    },
-    {
       type: "bRMS",
       stimulus: jsPsych.timelineVariable('stimuli'),
       timing_response: trialLength,
@@ -795,7 +785,7 @@ var mainBlockIns = {
 
 
 var used_images = [] //creating 'used_images[]', holding all and only faces going to be used in the main block. *yuval
-for (i = 0; i < total_num_faces; i++) {
+for (i = 1; i <= total_num_faces; i++) {
     used_images.push('faces/' + i + '.jpg')
 }
 var brms_task_stimuli = [];
