@@ -56,8 +56,7 @@ var ITI = 1000,
     time_limit = 60 * (60 * 1000),
     stimAlphas = 0.4,
     unitSize = 4,
-    breakEvery = 4,
-    exp_num_faces = 4, // number of different faces to use per experiment  *yuval
+    breakEvery = 20,
     repetitions = 1, // number of repetitions of each face   *yuval
     total_num_faces = 30, // total number of faces in the database (images file) *yuval
     train_repetitions = 10, // number of repeats of the practice procedure (at this point 4 stimuli)
@@ -67,12 +66,12 @@ var ITI = 1000,
     fade_out_time = 15,
     fade_out_length = 5,
     training_allowed_repeat = 1,
-    experiment_performance_thresh = .75,
+    experiment_performance_thresh = .80,
     experiment_performance_trials = 10,
     train_performance_thresh = .85,     ///////remember to return to 0.85
-    experiment_RT_trials = 8,
-    experiment_RT_trial_threshold = 5,
-    experiment_RT_threshold = 30,
+    experiment_RT_trials = 8, // only after this number of trials look at RT thresholds
+    experiment_RT_trial_threshold = 5, // number of allowed 'too fast' trials. More then this will bring a warning
+    experiment_RT_threshold = 300, // less ms then this will be marked 'too fast'
     sProblemCrit = 8,
     bProblemCrit = 2;
 
@@ -272,7 +271,7 @@ var introduction_procedure = {
                 var id = urlvar.id
                 var card_width_px = Number(urlvar.width)
                 var distance = Number(urlvar.distance)
-                jsPsych.data.addProperties({subject_id: id, card_width_px: card_width_px, distance: distance});
+                jsPsych.data.addProperties({id: id, card_width_px: card_width_px, distance: distance});
             }
         },
         {
@@ -318,6 +317,9 @@ var practice_procedure = {
             },
             on_finish: function(){
                 document.querySelector('#cursor-toggle').remove()
+            },
+            data: {
+                training: true
             }
 
         },
@@ -329,7 +331,10 @@ var practice_procedure = {
             button_html: '<button class="jspsych-btn">%choice%</button>',
             stimulus_width: '900',
             margin_horizontal: '50px',
-            margin_vertical: '20px'
+            margin_vertical: '20px',
+            data: {
+                training: true
+            }
         },
         {
             type: 'image-button-response',
@@ -339,7 +344,10 @@ var practice_procedure = {
             button_html: '<button class="jspsych-btn">%choice%</button>',
             stimulus_width: '900',
             margin_horizontal: '50px',
-            margin_vertical: '20px'
+            margin_vertical: '20px',
+            data: {
+                training: true
+            }
         },
         {
             type: 'html-keyboard-response',
@@ -360,6 +368,9 @@ var practice_procedure = {
             },
             on_finish: function(){
                 document.querySelector('#cursor-toggle').remove()
+            },
+            data: {
+                training: true
             }
         },
         {
@@ -380,7 +391,10 @@ var practice_procedure = {
             button_html: '<button class="jspsych-btn">%choice%</button>',
             stimulus_width: '900',
             margin_horizontal: '50px',
-            margin_vertical: '20px'
+            margin_vertical: '20px',
+            data: {
+                training: true
+            }
         },
         {
             type: 'image-button-response',
@@ -390,7 +404,10 @@ var practice_procedure = {
             button_html: '<button class="jspsych-btn">%choice%</button>',
             stimulus_width: '900',
             margin_horizontal: '50px',
-            margin_vertical: '20px'
+            margin_vertical: '20px',
+            data: {
+                training: true
+            }
         },
         {
             type: 'html-keyboard-response',
@@ -540,6 +557,8 @@ var trial_procedure = {
                       new_wrong_answers++;
                   }
                   
+                  } else {
+                    all_data[all_data.length-3].success = null; // if there was no answer during trial - don't call it FALSE.
                   }
                 }
             }
@@ -584,7 +603,7 @@ var trial_procedure = {
 
 var instruction_text = [{
     stimulus: ["<p style='font-size: 28px;'>First part is done!</p>\
-    <p style='font-size: 28px;'>You've finished about half of the study, great job!</p>\
+    <p style='font-size: 28px;'>You've finished more than half of the study, great job!</p>\
     <p style='font-size: 24px;' align='center'><i>Press the space bar to continue.</i></p>"],
     choices: [32]
   },
@@ -632,8 +651,10 @@ var instruction_text = [{
   {
     stimulus: ["<div class='center'>\
       <img src='keys.jpg'></img>\
-      <p style='font-size: 28px;'>Place your fingers on the 'D' and 'K' keys as shown in the picture, \
-      and press either one of these keys to start the practice.</p></div>"],
+      <p style='font-size: 28px;'>Place your fingers on the 'D' and 'K' keys as shown in the picture.</p> \
+      <p style='font-size: 28px;'>If a face appears on the right side press the right key (K).</p>\
+      <p style='font-size: 28px;'>If a face appears on the left side press the left key (D).</p>\
+      <p>Press either one of these keys to start the practice.</p></div>"],
     choices: [68, 75]
   }
 ];
@@ -674,7 +695,7 @@ var bRMS_practice_procedure = {
             },
       data: {
           //stimulus: jsPsych.timelineVariable('practice_stimuli'),
-          trial_type: 'brms-training',
+          training: true,
           timing_response: trialLength,
           fade_out_time: fade_out_time,
           fade_in_time: fade_in_time,
@@ -758,8 +779,7 @@ var secChanceLoop = {
 var mainBlockText = [{
     stimulus: ["<div class = 'center'><p style='font-size: 28px;'>You have completed the practice block.</p>\
   <p style='font-size: 28px;'>You will now continue with the same task. The task may now be more \
-  difficult.\
-  You will have 3 short breaks. </p>\
+  difficult. It will take about 5-10 minutes, and you will have a short break in the half way point. </p>\
     <p style='font-size: 24px;'>Press either the 'D' or the 'K' keys to continue.</p></div>"],
     choices: [68, 75]
   },
@@ -989,27 +1009,47 @@ var debrief = {
     {
       type: 'survey-likert',
       questions: [{
-        prompt: "How clear were the instructions to you?",
+        prompt: "How clear were the instructions to you in the first task (detecting flickering objects in scenes)?",
         labels: ["1<br>Not at all", "2", "3", "4", "5<br>Absolutely clear"],
         required: true,
-        name: "instructions"
-        
+        name: "instructions_1"        
       }]
     },
     {
       type: 'survey-text',
       questions: [{
-        prompt: "Did you have any special strategy that helped you seeing \
-                the objects more quickly?",
+        prompt: "Did you have any special strategy that helped you detect \
+                the objects in the first task?",
         columns: 100,
         rows: 4,
         value: '',
-        name: "strategy",
+        name: "strategy_1",
         required: true
       }]
     },
     {
+      type: 'survey-likert',
+      questions: [{
+        prompt: "How clear were the instructions to you in the second task (detecting faces)?",
+        labels: ["1<br>Not at all", "2", "3", "4", "5<br>Absolutely clear"],
+        required: true,
+        name: "instructions_2"        
+      }]
+    },
+    {
       type: 'survey-text',
+      questions: [{
+        prompt: "Did you have any special strategy that helped you detect \
+                the faces in the second task?",
+        columns: 100,
+        rows: 4,
+        value: '',
+        name: "strategy_2",
+        required: true
+      }]
+    },
+    {
+      type: 'survey-likert',
       questions: [{
         prompt: "You have just participated in a pilot experiment.\
                 The aim of the study is to measure participant's ability to detect changes in a scene.\
@@ -1019,16 +1059,7 @@ var debrief = {
         value: '',
         name: "comments"
       }]
-    },
-    {
-      type: 'survey-text',
-      questions: [{
-        prompt: "Please enter your MTurk Worker ID",
-        columns: 18,
-        rows: 1,
-        value: ''
-      }]
-    },
+    }
     
 ]}
 
@@ -1041,13 +1072,10 @@ var get_code = {
 };
 //#endregion DEBRIEF
 
-var trial_chin = {
-    type: 'virtual-chin'
-}
 
 //INITIATE EXPERIMENT
 jsPsych.init({
-    timeline: [introduction_procedure,practice_procedure, trial_procedure, brms_instructions ,secChanceLoop, mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief, trial_chin ,get_code],
+    timeline: [introduction_procedure,practice_procedure, trial_procedure, brms_instructions ,secChanceLoop, mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief ,get_code],
     on_finish: function() {
       alert("The experiment is over. Thank you for your participation!");
     },

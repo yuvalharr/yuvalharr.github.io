@@ -6,30 +6,71 @@ library(ez)
 library(plyr)
 library(Hmisc)
 
+# INITIAL DATA PREPERATION ----
+
 setwd ("C:/Users/yuval/Desktop/lab/Thesis/yuvalharr.github.io")
-dt <- fread('cognitive-experiment- pilot.csv')
-dt <- dt[, rt:=as.double(rt)] # make rt column as int instead of string
+dt <- fread('2nd-page-pilot.csv')
+dt <- dt[, rt:=as.double(rt)] # make rt column as double instead of string
+dt <- dt[, acc:=as.double(acc)] # make rt column as double instead of string
 
-#check total running times
+only_brms <- dt[trial_type == 'bRMS']
+trialCount <- only_brms[, .(trials = .N), by = run_id] 
+trialCount <- trialCount[trials >= 48] # minimum of brms trials needed to finish exp
+good_pps <- dt[run_id %in% trialCount$run_id] # keep only subjects who finished all brms trials
 
-only_animation_detection<- dt[trial_type == 'animation' | trial_type =='image-button-response'] # take only animation trials
-only_animation_detection <- only_animation_detection[trial_index >15] # discard demo trials
-ordered <- only_animation_detection[order(run_id, -rt)] # order by rt for each subject
-only_animation_detection[, .(trial_type)]
-ans <- only_animation_detection[trial_type == 'animation',
-               .(
-                 mean_rt = mean(rt, na.rm = T),
-                 task_finish_time = max(time_elapsed),
-                 task_start_time = min(time_elapsed)
-                 ),
-                 by = .(run_id)]
-viewing_distance <- dt[trial_type == 'virtual-chin', .(run_id, viewing_distance_cm)]
-mili_to_min <- ans[,.(run_id, task_finish_min = ans$task_finish_time/1000/60, task_start_min = task_start_time/1000/60)]
-ans <- merge(ans, mili_to_min)
-ans <- merge(ans, viewing_distance)
-ans$total_task_time_min <- ans[,task_finish_min-task_start_min]
+# make two dt's of brms and CB
+only_animation <- good_pps[trial_type == 'animation'] # take only animation trials
+only_animation <- only_animation[trial_index >15] # discard demo trials
 
-ggplot(ans, aes(x=viewing_distance_cm, y=mean_rt)) + geom_point()
+
+
+only_brms <- good_pps[trial_type == 'bRMS'] # take only bRMS trials
+only_brms <- only_brms[trial > 0] # discard demo trials
+
+acc_column <- only_brms[,.(brms_acc = mean(acc)), by = subject_id]
+brms_summary <- only_brms[acc == 1, .(brms_rt = mean(rt), distance = mean(distance)), by = subject_id]
+brms_summary <- merge(brms_summary, acc_column)
+cb_summary <- only_animation[!is.na(rt) & success == TRUE, .(cb_rt = mean(rt, na.rm = T)), by = subject_id]
+all_summary <- merge(brms_summary, cb_summary)
+only_animation <- merge(all_summary[,.(brms_rt, subject_id)], only_animation) # add mean brms score for each sbj
+
+
+boxplot(rt~subject_id, data= only_animation)  
+boxplot(rt~subject_id, data= only_brms)  
+# MAKE CB CUMULATIVE % CORRECT GRAPH PER SUBJECT ----
+
+only_animation[is.na(rt), success := NA] # make all 60 s trials unanswered instead of FALSE
+only_animation <- only_animation[success == TRUE | is.na(success)]
+only_animation[is.na(success), rt := 66666] # make all unanswered trials have rt bigger then 60 s for graph
+
+only_animation <- only_animation[, brms_rt:=as.double(brms_rt)] # make rt column as double instead of string
+
+d.f <- arrange(only_animation,brms_rt,rt)
+d.f.ecdf <- ddply(d.f, .(brms_rt), transform, ecdf=ecdf(rt)(rt) )
+p <- ggplot( d.f.ecdf, aes(rt, ecdf, group = subject_id, colour = brms_rt))
+p + geom_line()
+
+
+
+# TO STACK OVERFLOW
+set.seed(125)
+dat <- data.frame(
+  subject = c(rep(c("A"), 5), rep(c("B"), 5), rep(c("C"), 5)),
+  color_factor = c(rep(0.3, 5), rep(0.6,5), rep(0.9,5)),
+  rt = sample(1:50, 15, replace =T)
+)
+
+dat <- arrange(dat,color_factor,rt)
+dat.ecdf <- ddply(dat, .(color_factor), transform, ecdf=ecdf(rt)(rt) )
+p <- ggplot( dat.ecdf, aes(rt, ecdf, colour = subject)) + geom_line()
+p2 <- ggplot( dat.ecdf, aes(rt, ecdf, colour = color_factor)) + geom_line()
+p3 <- ggplot( dat.ecdf, aes(rt, ecdf, group = subject, colour = color_factor)) + geom_line()
+
+p4 <- ggplot( dat.ecdf, aes(rt, ecdf, colour = subject,group=subject)) + geom_line()+
+  scale_color_manual(values = c('lightblue','blue','darkblue'))+
+  labs(color='Subject')
+
+# from Yanivs analysis ----
 
 cleanData <- function(x, excludeSubjects = NULL) {
   # Code a missing response as wrong response
