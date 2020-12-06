@@ -9,7 +9,7 @@ library(Hmisc)
 # INITIAL DATA PREPERATION ----
 
 setwd ("C:/Users/yuval/Desktop/lab/Thesis/yuvalharr.github.io")
-dt <- fread('2nd-page-pilot.csv')
+dt <- fread('pilot_10.csv')
 dt <- dt[, rt:=as.double(rt)] # make rt column as double instead of string
 dt <- dt[, acc:=as.double(acc)] # make rt column as double instead of string
 
@@ -27,48 +27,48 @@ only_animation <- only_animation[trial_index >15] # discard demo trials
 only_brms <- good_pps[trial_type == 'bRMS'] # take only bRMS trials
 only_brms <- only_brms[trial > 0] # discard demo trials
 
-acc_column <- only_brms[,.(brms_acc = mean(acc)), by = subject_id]
-brms_summary <- only_brms[acc == 1, .(brms_rt = mean(rt), distance = mean(distance)), by = subject_id]
+acc_column <- only_brms[,.(brms_acc = mean(acc)), by = id]
+brms_summary <- only_brms[acc == 1, .(brms_rt = mean(rt), distance = mean(distance)), by = id]
 brms_summary <- merge(brms_summary, acc_column)
-cb_summary <- only_animation[!is.na(rt) & success == TRUE, .(cb_rt = mean(rt, na.rm = T)), by = subject_id]
+cb_summary <- only_animation[success == 'true', .(cb_rt = mean(rt, na.rm = T)), by = id]
 all_summary <- merge(brms_summary, cb_summary)
-only_animation <- merge(all_summary[,.(brms_rt, subject_id)], only_animation) # add mean brms score for each sbj
+only_animation <- merge(all_summary[,.(brms_rt, id)], only_animation) # add mean brms score for each sbj
 
 
-boxplot(rt~subject_id, data= only_animation)  
-boxplot(rt~subject_id, data= only_brms)  
+boxplot(rt~id, data= only_animation)  
+boxplot(rt~id, data= only_brms)  
 # MAKE CB CUMULATIVE % CORRECT GRAPH PER SUBJECT ----
 
 only_animation[is.na(rt), success := NA] # make all 60 s trials unanswered instead of FALSE
-only_animation <- only_animation[success == TRUE | is.na(success)]
-only_animation[is.na(success), rt := 66666] # make all unanswered trials have rt bigger then 60 s for graph
+only_animation <- only_animation[success == 'true' | is.na(success)]
+only_animation[is.na(success), rt := 99999] # make all unanswered trials have infinate rt for asimptote in 60 s
 
 only_animation <- only_animation[, brms_rt:=as.double(brms_rt)] # make rt column as double instead of string
 
+mid <- mean(all_summary$brms_rt)
 d.f <- arrange(only_animation,brms_rt,rt)
+
 d.f.ecdf <- ddply(d.f, .(brms_rt), transform, ecdf=ecdf(rt)(rt) )
-p <- ggplot( d.f.ecdf, aes(rt, ecdf, group = subject_id, colour = brms_rt))
-p + geom_line()
+p <- ggplot( d.f.ecdf, aes(rt, ecdf, group = id, colour = brms_rt))
+p + geom_line() + coord_cartesian(xlim = c(0, 60000), ylim = c(0, 1)) + scale_color_gradient2(midpoint = mid, low = "blue", mid = "white",
+                                                                                              high = "red", space = "Lab" ) +
+    ggtitle('Accumulated CB proportion correct at each time point per participant') +
+  xlab ('Cut-off point (ms)') + ylab ('% Correct')
 
+cor.test(all_summary$brms_rt, all_summary$cb_rt)
+ggplot(all_summary, aes(x = brms_rt, y = cb_rt)) +
+  geom_point() +
+  geom_smooth(method='lm')
 
+cor.test(all_summary$brms_rt, all_summary$distance)
+ggplot(all_summary, aes(x = brms_rt, y = distance)) +
+  geom_point() +
+  geom_smooth(method='lm')
 
-# TO STACK OVERFLOW
-set.seed(125)
-dat <- data.frame(
-  subject = c(rep(c("A"), 5), rep(c("B"), 5), rep(c("C"), 5)),
-  color_factor = c(rep(0.3, 5), rep(0.6,5), rep(0.9,5)),
-  rt = sample(1:50, 15, replace =T)
-)
-
-dat <- arrange(dat,color_factor,rt)
-dat.ecdf <- ddply(dat, .(color_factor), transform, ecdf=ecdf(rt)(rt) )
-p <- ggplot( dat.ecdf, aes(rt, ecdf, colour = subject)) + geom_line()
-p2 <- ggplot( dat.ecdf, aes(rt, ecdf, colour = color_factor)) + geom_line()
-p3 <- ggplot( dat.ecdf, aes(rt, ecdf, group = subject, colour = color_factor)) + geom_line()
-
-p4 <- ggplot( dat.ecdf, aes(rt, ecdf, colour = subject,group=subject)) + geom_line()+
-  scale_color_manual(values = c('lightblue','blue','darkblue'))+
-  labs(color='Subject')
+cor.test(all_summary$cb_rt, all_summary$distance)
+ggplot(all_summary, aes(x = cb_rt, y = distance)) +
+  geom_point() +
+  geom_smooth(method='lm')
 
 # from Yanivs analysis ----
 

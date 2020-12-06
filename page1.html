@@ -178,7 +178,32 @@ var test_animation = {
   			 jsPsych.endExperiment('The experiment has been aborted');
   			}
     }
-        
+
+var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));        
+
+var safari_test = {
+  type: 'html-keyboard-response',
+      conditional_function: function() {
+        if (isSafari) {
+          return true;
+        } else {
+            return false;
+        }
+      },
+      timeline: [{
+        stimulus: "<div class = 'center'>\
+                  <p>It seems that you are using Safari as your web browser.</p>\
+                  <p>As noted in the HIT description, this study is not compatible with this browser.</p>\
+                  <p>The experiment will be now aborted.</p>\
+                  <p>Press the space bar to continue.</p></div>"
+      }],
+      choices: [32],
+      //** needed eventualy **//
+      on_finish: function() {			 
+  			 jsPsych.endExperiment('The experiment has been aborted');
+  			}
+}
+
 var take_id = {
         type: 'survey-text',
         questions: [{
@@ -200,7 +225,7 @@ var trial_chin = {
     type: 'virtual-chin'
 }
 
-timeline.push(test_animation, poor_animation, fullScreen, take_id, pre_calib ,trial_chin);
+timeline.push(safari_test, test_animation, poor_animation, fullScreen, take_id, pre_calib ,trial_chin);
         
 jsPsych.init({
           timeline: timeline,
