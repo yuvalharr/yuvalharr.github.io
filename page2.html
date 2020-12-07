@@ -47,19 +47,19 @@
 document.body.style.backgroundColor = "ghostwhite";
 
 // Change Blindness paramaters
-var num_img_pairs = 2,   // ENTER NUMBER OF STIMULI HERE
+var num_img_pairs = 30,   // ENTER NUMBER OF STIMULI HERE
     wrong_answers_message = 2, // at this num of wrong answers, every wrong answer will get a warning message (including this num)
     wrong_answers_abort = 4 // at this num of wrong answers, the exp will be aborted
 
 // BRMS parameters
-var total_num_faces = 2, // total number of faces in the database (images file) *yuval
-    train_repetitions = 1, // number of repeats of the practice procedure (at this point 4 stimuli)
+var total_num_faces = 21, // total number of faces in the database *yuval. in this case also including even nums that are not presented to pps
+    train_repetitions = 10, // number of repeats of the practice procedure (at this point 4 stimuli)
     ITI = 1000,
     time_limit = 60 * (60 * 1000),
     stimAlphas = 0.4,
     unitSize = 4,
-    breakEvery = 20,
-    repetitions = 1, // number of repetitions of each face   *yuval    
+    breakEvery = 21,
+    repetitions = 4, // number of repetitions of each face   *yuval    
     train_alpha = 0.4,
     trialLength = 0, // 0 is no limit
     fade_in_time = 1,
@@ -68,14 +68,14 @@ var total_num_faces = 2, // total number of faces in the database (images file) 
     training_allowed_repeat = 1,
     experiment_performance_thresh = .80,
     experiment_performance_trials = 10,
-    train_performance_thresh = .80,     ///////remember to return to 0.85
+    train_performance_thresh = .85,     ///////remember to return to 0.85
     experiment_RT_trials = 8, // only after this number of trials look at RT thresholds
     experiment_RT_trial_threshold = 5, // number of allowed 'too fast' trials. More then this will bring a warning
     experiment_RT_threshold = 300, // less ms then this will be marked 'too fast'
     sProblemCrit = 8,
     bProblemCrit = 2;
 
-var CONDITION = Math.random() >= 0.5; //change when condition is assigned through cognition.run
+var CONDITION = Math.random() >= 0.5; // Block this row when condition is assigned through cognition.run
 if (CONDITION == 1) {
   CONDITION = 1
 } else {
@@ -216,7 +216,8 @@ var pre_load_list = []   // YH - array of images names for preload_images in the
 for(var i=0; i < coupled.length; i++){     // make timeline - YH
     timeline_stimuli.push({stimuli: [coupled[i][0], coupled[i][0], coupled[i][1], coupled[i][1]], 
                              detection_image: [coupled[i][2]],
-                             answers: coupled[i][3]
+                             answers: coupled[i][3],
+                             cb_trial: i+1
                              } 
                          );
     
@@ -536,7 +537,8 @@ var CB_trial_procedure = {
             frame_isi: 80,
             frame_time: 240,
             data: {
-              col_row_answers: jsPsych.timelineVariable('answers')
+              col_row_answers: jsPsych.timelineVariable('answers'),
+              cb_trial: jsPsych.timelineVariable('cb_trial')
               },
             on_finish: function(){
                 document.querySelector('#cursor-toggle').remove()
@@ -849,7 +851,7 @@ var bRMS_mainBlockIns = {
 
 
 var used_images = [] //creating 'used_images[]', holding all and only faces going to be used in the main block. *yuval
-for (i = 1; i <= total_num_faces; i++) {
+for (i = 1; i <= total_num_faces; i += 2) {
     used_images.push('faces/' + i + '.jpg')
 }
 var brms_task_stimuli = [];
