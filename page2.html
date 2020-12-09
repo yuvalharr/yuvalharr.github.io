@@ -58,7 +58,7 @@ var total_num_faces = 21, // total number of faces in the database *yuval. in th
     time_limit = 60 * (60 * 1000),
     stimAlphas = 0.4,
     unitSize = 4,
-    breakEvery = 21,
+    breakEvery = 42,
     repetitions = 4, // number of repetitions of each face   *yuval    
     train_alpha = 0.4,
     trialLength = 0, // 0 is no limit
@@ -240,7 +240,13 @@ var postCalibText = [
     stimulus: ["<p style='font-size: 28px;' align='justify'>We finished the calibration stage! We will now continue to the main task of this experiment.</p>\
                 <p style='font-size: 28px;' align='justify'><b>We remind you to make an effort to move as little as possible until the end of the task.</b></p>\
                 <p style='font-size: 28px;'><b>Please read the following instructions carefully.</b></p>\
-    <p style='font-size: 24px;'><i>Press the space bar to continue to the instructions</i></p>"],
+                <p style='font-size: 24px;'><i>Press the space bar to continue</i></p>"],
+    choices: [32]
+  },
+  {
+    stimulus: ["<p style='font-size: 28px;' align='justify'>This experiment is made up of two different tasks, followed by a short questionnaire.</p>\
+                <p style='font-size: 28px;' align='justify'>Each task should take about 10-20 minutes, and the questionnaire another 5 minutes.</p>\
+                <p style='font-size: 24px;'><i>Press the space bar to continue to the first task's instructions</i></p>"],
     choices: [32]
   }
 ]
