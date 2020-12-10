@@ -58,7 +58,7 @@ var total_num_faces = 21, // total number of faces in the database *yuval. in th
     time_limit = 60 * (60 * 1000),
     stimAlphas = 0.4,
     unitSize = 4,
-    breakEvery = 42,
+    breakEvery = 21,
     repetitions = 4, // number of repetitions of each face   *yuval    
     train_alpha = 0.4,
     trialLength = 0, // 0 is no limit
@@ -98,6 +98,34 @@ if (CONDITION == 1) {
   q3 = " (detecting flickering objects in scenes)?"
   q4 = "objects"
 }
+
+var brief_brms = {
+      type: "bRMS",
+      stimulus: "faces/training/p_0.jpg",
+      timing_response: 0.1,
+      fade_out_time: 0.1,
+      fade_in_time: 0.1,
+      fade_out_length: 0.1,
+      stimulus_alpha: 0.01,
+      timing_post_trial: 0.1,
+      visUnit: 1,
+      within_ITI: 0,
+      colorOpts: ['#FF0000', '#00FF00', '#0000FF',
+                       '#FFFF00', '#FF00FF', '#00FFFF'
+                     ],
+      data: {
+        stimulus: "faces/training/p_0.jpg",
+        timing_response: trialLength,
+        stimulus_alpha: stimAlphas,
+        timing_post_trial: 0,
+        within_ITI: 0,
+        fade_in_time: fade_in_time,
+        fade_out_time: fade_out_time,
+        fade_out_length: fade_out_length,
+        trial: 0
+      } 
+    }
+
 //#region CHANGE BLINDNESS PART
 //#region Change Blindness stimuli preperation
 function replicate(arr, times) { // function to help make array of many 'L's and 'R's 
@@ -257,9 +285,9 @@ var CBinstructionsText = [
     Each time you will be presented with one scene. This scene will be static, except for one single object that will be appearing and disappearing.\
     Your goal will be to detect this object as quickly and accurately as you can.</p>\
     <p style='font-size: 28px;' align='justify'>We will ask you to place your finger over the space bar, and once you have found the object press the space bar <b>as quickly as possible.</b></p>\
-    <p style='font-size: 28px;' align='justify'>For each scene, you will have 60 seconds to do so. After that you will be asked about the location of the object.</P>\
+    <p style='font-size: 28px;' align='justify'>For each scene, you will have up to 60 seconds to do so. After that you will be asked about the location of the object.</P>\
     <br>\
-    <p style='font-size: 28px;'>We will now continue with a short practice before starting the main task.</p>\
+    <p style='font-size: 28px;'>We will now continue with a short practice before starting the task.</p>\
     <br>\
     <p style='font-size: 24px;'><i>Press the space bar to continue</i></p>"],
     choices: [32]
@@ -280,7 +308,7 @@ var CBinPracticeText = [
 
 var CBafterPracticeText = [
   {
-    stimulus: ["<p style='font-size: 28px;'>Great! You are now ready to continue to the main task.</p>\
+    stimulus: ["<p style='font-size: 28px;'>Great! You are now ready to continue to the task.</p>\
                 <p style='font-size: 28px;'>You will now be shown a series of similar trials one after another.</p>\
                 <p style='font-size: 28px;'>It will take about 10-15 minutes until the next break.</p>\
                 <p style='font-size: 28px;'>We ask you to keep your finger over the space bar and stay concentrated the whole time.</p>\
@@ -689,8 +717,8 @@ var bRMS_instruction_text = [
   {
     stimulus: ["<div class = 'center'><p style='font-size: 28px;'>During the task, please focus your gaze at\
        the plus sign in the middle.</p> \
-       <p style='font-size: 28px;'>Even though the faces appear to the left and right of the plus sign, it is important that you look at the plus \
-        sign at all times.</p>\
+       <p style='font-size: 28px;'><b>Even though the faces appear to the left and right of the plus sign, it is important that you look at the plus \
+        sign at all times.</b></p>\
         <p style='font-size: 24px;' align='center'></i>Press the space bar to continue.</i></p></div>"],
     choices: [32]
   },
@@ -840,7 +868,7 @@ var bRMS_mainBlockText = [{
    <p style='font-size: 28px;'>Even though the faces appear to the left\
     and right of the plus sign, it is important that you look at the plus \
     sign at all times.</p>\
-    <p style='font-size: 24px;'>Press either the 'D' or the 'K' keys to continue.</p></div>"],
+    <p style='font-size: 26px;'>Press either the 'D' or the 'K' keys to start the task.</p></div>"],
     choices: [68, 75]
   }
 ]
@@ -1229,9 +1257,9 @@ var get_code = {
 
 var experiment_timeline = []
 if (CONDITION == 1) {
-  experiment_timeline = [introduction_procedure, CB_practice_procedure, CB_trial_procedure, middle_instructions, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
+  experiment_timeline = [brief_brms, introduction_procedure, CB_practice_procedure, CB_trial_procedure, middle_instructions, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
   } else {
-    experiment_timeline = [introduction_procedure, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, middle_instructions, CB_practice_procedure, CB_trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
+    experiment_timeline = [brief_brms, introduction_procedure, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, middle_instructions, CB_practice_procedure, CB_trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
   }
 
 jsPsych.init({
