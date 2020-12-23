@@ -9,22 +9,31 @@ library(Hmisc)
 # INITIAL DATA PREPERATION ----
 
 setwd ("C:/Users/yuval/Desktop/lab/Thesis/yuvalharr.github.io")
-dt <- fread('pilot_10.csv')
+dt <- fread('pilot_13.12.csv', fill = T)
+dt = subset(dt, select = -c(condition)) # remove one 'condition' column (for some reason there are two) 
+dt <- dt[dt$run_id != '1', ] # DISCARD 1st pilot participant - JUST FOR NOW **** YH
+dt <- dt[dt$experiment_finished == 'true', ] # keep only finished experiments
+
 dt <- dt[, rt:=as.double(rt)] # make rt column as double instead of string
 dt <- dt[, acc:=as.double(acc)] # make rt column as double instead of string
+dt <- dt[, time_elapsed:=as.double(time_elapsed)]
+dt <- dt[, distance:=as.double(distance)]
+dt <- dt[, trial:=as.numeric(trial)]
+dt <- dt[, cb_trial:=as.numeric(cb_trial)]
+dt <- dt[, id:=as.factor(id)] # make id column as factor instead of string
+dt <- dt[, training:=as.logical(training)]
+summary(dt)
 
-only_brms <- dt[trial_type == 'bRMS']
-trialCount <- only_brms[, .(trials = .N), by = run_id] 
-trialCount <- trialCount[trials >= 48] # minimum of brms trials needed to finish exp
-good_pps <- dt[run_id %in% trialCount$run_id] # keep only subjects who finished all brms trials
+
+# trialCount <- only_brms[, .(trials = .N), by = run_id]  # - NOT NEEDED FOR NOW
+# trialCount <- trialCount[trials >= 48] # minimum of brms trials needed to finish exp - NOT NEEDED FOR NOW
+# good_pps <- dt[run_id %in% trialCount$run_id] # keep only subjects who finished all brms trials -NOT NEEDED FOR NOW
 
 # make two dt's of brms and CB
-only_animation <- good_pps[trial_type == 'animation'] # take only animation trials
-only_animation <- only_animation[trial_index >15] # discard demo trials
+only_animation <- dt[trial_type == 'animation'] # take only animation trials
+only_animation <- only_animation[cb_trial >= 1] # discard demo trials
 
-
-
-only_brms <- good_pps[trial_type == 'bRMS'] # take only bRMS trials
+only_brms <- dt[trial_type == 'bRMS']
 only_brms <- only_brms[trial > 0] # discard demo trials
 
 acc_column <- only_brms[,.(brms_acc = mean(acc)), by = id]

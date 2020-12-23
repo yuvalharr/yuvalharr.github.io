@@ -60,7 +60,7 @@ var total_num_faces = 21, // total number of faces in the database *yuval. in th
     unitSize = 4,
     breakEvery = 21,
     repetitions = 4, // number of repetitions of each face   *yuval    
-    train_alpha = 0.4,
+    train_alpha = 0.6,
     trialLength = 0, // 0 is no limit
     fade_in_time = 1,
     fade_out_time = 20,
@@ -75,7 +75,7 @@ var total_num_faces = 21, // total number of faces in the database *yuval. in th
     sProblemCrit = 8,
     bProblemCrit = 2;
 
-var CONDITION = Math.random() >= 0.5; // Block this row when condition is assigned through cognition.run
+var CONDITION = 0 //Math.random() >= 0.5; // Block this row when condition is assigned through cognition.run
 if (CONDITION == 1) {
   CONDITION = 1
 } else {
@@ -98,33 +98,6 @@ if (CONDITION == 1) {
   q3 = " (detecting flickering objects in scenes)?"
   q4 = "objects"
 }
-
-var brief_brms = {
-      type: "bRMS",
-      stimulus: "faces/training/p_0.jpg",
-      timing_response: 0.1,
-      fade_out_time: 0.1,
-      fade_in_time: 0.1,
-      fade_out_length: 0.1,
-      stimulus_alpha: 0.01,
-      timing_post_trial: 0.1,
-      visUnit: 1,
-      within_ITI: 0,
-      colorOpts: ['#FF0000', '#00FF00', '#0000FF',
-                       '#FFFF00', '#FF00FF', '#00FFFF'
-                     ],
-      data: {
-        stimulus: "faces/training/p_0.jpg",
-        timing_response: trialLength,
-        stimulus_alpha: stimAlphas,
-        timing_post_trial: 0,
-        within_ITI: 0,
-        fade_in_time: fade_in_time,
-        fade_out_time: fade_out_time,
-        fade_out_length: fade_out_length,
-        trial: 0
-      } 
-    }
 
 //#region CHANGE BLINDNESS PART
 //#region Change Blindness stimuli preperation
@@ -865,9 +838,9 @@ var bRMS_mainBlockText = [{
   {
     stimulus: ["<div class = 'center'><p style='font-size: 28px;'>During the task, please focus your gaze at\
    the plus sign in the middle.</p> \
-   <p style='font-size: 28px;'>Even though the faces appear to the left\
+   <p style='font-size: 28px;'><b>Even though the faces appear to the left\
     and right of the plus sign, it is important that you look at the plus \
-    sign at all times.</p>\
+    sign at all times.</b></p>\
     <p style='font-size: 26px;'>Press either the 'D' or the 'K' keys to start the task.</p></div>"],
     choices: [68, 75]
   }
@@ -1141,25 +1114,23 @@ var debrief = {
     {
       type: 'survey-likert',
       questions: [
-        {prompt: "<br><br>Do you seem to be aware of subtleties in your environment?", name: 'q1', labels: scale_1},
-        {prompt: "<br><br>Are you easily overwhelmed by things like bright lights, strong smells, coarse fabrics, or sirens close by?", name: 'q2', labels: scale_1},
-        {prompt: "<br><br>Do you have a rich, complex inner life?", name: 'q3', labels: scale_1},
-        {prompt: "<br><br>Do you get rattled when you have a lot to do in a short amount of time?", name: 'q4', labels: scale_1},        
+        {prompt: "<br><br>Do you seem to be aware of subtleties in your environment?", name: 'q1', labels: scale_1, required: true},
+        {prompt: "<br><br>Are you easily overwhelmed by things like bright lights, strong smells, coarse fabrics, or sirens close by?", name: 'q2', labels: scale_1, required: true},
+        {prompt: "<br><br>Do you have a rich, complex inner life?", name: 'q3', labels: scale_1, required: true},
+        {prompt: "<br><br>Do you get rattled when you have a lot to do in a short amount of time?", name: 'q4', labels: scale_1, required: true},        
       ],
       randomize_question_order: false,
-      required: true,
       name: "hsp1"
     },
     {
       type: 'survey-likert',
       questions: [
-        {prompt: "<br><br>Are you deeply moved by the arts or music? ", name: 'q5', labels: scale_1},
-        {prompt: "<br><br>Are you annoyed when people try to get you to do too many things at once?", name: 'q6', labels: scale_1},
-        {prompt: "<br><br>Do you make a point to avoid violent movies and TV shows?", name: 'q7', labels: scale_1},
-        {prompt: "<br><br>Do you find it unpleasant to have a lot going on at once?", name: 'q8', labels: scale_1},        
+        {prompt: "<br><br>Are you deeply moved by the arts or music? ", name: 'q5', labels: scale_1, required: true},
+        {prompt: "<br><br>Are you annoyed when people try to get you to do too many things at once?", name: 'q6', labels: scale_1, required: true},
+        {prompt: "<br><br>Do you make a point to avoid violent movies and TV shows?", name: 'q7', labels: scale_1, required: true},
+        {prompt: "<br><br>Do you find it unpleasant to have a lot going on at once?", name: 'q8', labels: scale_1, required: true},        
       ],
       randomize_question_order: false,
-      required: true,
       name: "hsp2"
     },
     {
@@ -1171,7 +1142,6 @@ var debrief = {
         {prompt: "<br><br>When you must compete or be observed while performing a task, do you become so nervous or shaky that you do much worse than you would otherwise?", name: 'q12', labels: scale_1}
       ],
       randomize_question_order: false,
-      required: true,
       name: "hsp3"
     },
     {
@@ -1242,7 +1212,10 @@ var get_code = {
                 rows: 4,
                 value: '',
                 name: "comments"
-                }]
+                }],
+            on_finish: function() {
+              jsPsych.data.addProperties({experiment_finished: true});
+            }            
         },
         {
             type: 'html-button-response',
@@ -1255,12 +1228,12 @@ var get_code = {
 
 //INITIATE EXPERIMENT
 
-var experiment_timeline = []
-if (CONDITION == 1) {
-  experiment_timeline = [brief_brms, introduction_procedure, CB_practice_procedure, CB_trial_procedure, middle_instructions, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
-  } else {
-    experiment_timeline = [brief_brms, introduction_procedure, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, middle_instructions, CB_practice_procedure, CB_trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
-  }
+var experiment_timeline = [introduction_procedure, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, middle_instructions, CB_practice_procedure, CB_trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
+//if (CONDITION == 1) {
+//  experiment_timeline = [introduction_procedure, CB_practice_procedure, CB_trial_procedure, middle_instructions, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
+//  } else {
+//    experiment_timeline = [introduction_procedure, bRMS_instructions ,bRMS_secChanceLoop, bRMS_mainBlockIns, bRMS_block, middle_instructions, CB_practice_procedure, CB_trial_procedure, record_zoom_events, record_window_events, record_mturk_data ,debrief, if_driver, get_code]
+//  }
 
 jsPsych.init({
     timeline: experiment_timeline,

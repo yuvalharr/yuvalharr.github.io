@@ -99,16 +99,12 @@ var ITI = 1000,
   }  
 ];
 
-
-
 var fullScreen = {
         type: 'fullscreen',
         fullscreen_mode: true,
         message: '<p>We are ready to start! Please press the button for full-screen mode</p>',
         button_label: 'Full screen'    
         }
-
-        
 
 var test_animation = {
           type: 'bRMS-test',
@@ -181,6 +177,23 @@ var test_animation = {
 
 var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));        
 
+const getDeviceType = () => {
+  const ua = navigator.userAgent;
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+    return "tablet";
+  }
+  if (
+    /Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(
+      ua
+    )
+  ) {
+    return "mobile";
+  }
+  return "desktop";
+};
+
+var deviceType = getDeviceType()
+
 var safari_test = {
   type: 'html-keyboard-response',
       conditional_function: function() {
@@ -196,6 +209,27 @@ var safari_test = {
                   <p>As noted in the HIT description, this study is not compatible with this browser.</p>\
                   <p>The experiment will be now aborted.</p>\
                   <p>Press the space bar to continue.</p></div>"
+      }],
+      choices: [32],
+      //** needed eventualy **//
+      on_finish: function() {			 
+  			 jsPsych.endExperiment('The experiment has been aborted');
+  			}
+}
+
+var device_test = {
+  type: 'html-keyboard-response',
+      conditional_function: function() {
+        if (deviceType != "desktop") {
+          return true;
+        } else {
+            return false;
+        }
+      },
+      timeline: [{
+        stimulus: "<div class = 'center'>\
+                  <p>It seems that you your device is not compatible with this study.</p>\
+                  <p>The experiment will be now aborted.</p>"
       }],
       choices: [32],
       //** needed eventualy **//
@@ -225,7 +259,7 @@ var trial_chin = {
     type: 'virtual-chin'
 }
 
-timeline.push(safari_test, test_animation, poor_animation, fullScreen, take_id, pre_calib ,trial_chin);
+timeline.push(safari_test, device_test, test_animation, poor_animation, fullScreen, take_id, pre_calib ,trial_chin);
         
 jsPsych.init({
           timeline: timeline,
