@@ -1,12 +1,12 @@
 /*
  * Example plugin template
  */
-jsPsych.plugins["bRMS"] = (function() {
+jsPsych.plugins["bRMS-test"] = (function() {
 
   var plugin = {};
 
   plugin.info = {
-    name: 'bRMS',
+    name: 'bRMS-test',
     description: '',
     parameters: {
       visUnit: {
@@ -114,6 +114,11 @@ jsPsych.plugins["bRMS"] = (function() {
         default: false,
         description: 'Whether to include vbl array in data: increases memory \
         requirements.'
+      },
+      prompt: {
+        type: jsPsych.plugins.parameterType.STRING,
+        default: "<p>Testing for the \
+        compatibility of your personal computer with this HIT</p>."
       }
     }
   }
@@ -123,7 +128,6 @@ jsPsych.plugins["bRMS"] = (function() {
   plugin.trial = function(display_element, trial) {
 
     // Clear previous
-    document.body.style.backgroundColor = "grey";
     display_element.innerHTML = '';
 
     setTimeout(function() {
@@ -245,7 +249,6 @@ jsPsych.plugins["bRMS"] = (function() {
 
         // clear the display
         display_element.innerHTML = '';
-        document.body.style.backgroundColor = "grey";
 
         // Return mouse
         //stylesheet.deleteRule(stylesheet.cssRules.length - 1);
@@ -271,10 +274,19 @@ jsPsych.plugins["bRMS"] = (function() {
       var start_trial = function() {
         fixation.style.visibility = "visible";
 
+        // end trial if time limit is set
+        if (trial.timing_response > 0) {
+          var t2 = setTimeout(function() {
+            end_trial();
+          }, trial.timing_response * 1000);
+          setTimeoutHandlers.push(t2);
+        }
+
         tl.play();
 
         // start the response listener
         if (JSON.stringify(trial.choices) != JSON.stringify(["none"])) {
+          console.log('here');
           var keyboardListener = jsPsych.pluginAPI.getKeyboardResponse({
             callback_function: after_response,
             valid_responses: trial.choices,
@@ -287,14 +299,6 @@ jsPsych.plugins["bRMS"] = (function() {
 
       // Make display and animation -----------
 
-      // end trial if time limit is set
-      if (trial.timing_response > 0) {
-        var t2 = setTimeout(function() {
-          end_trial();
-        }, trial.timing_response * 1000);
-        setTimeoutHandlers.push(t2);
-      }
-
 
       // Draw fixation
       var fixation = document.createElement('canvas');
@@ -304,7 +308,6 @@ jsPsych.plugins["bRMS"] = (function() {
       fixation.height = frameHeight;
       fixation.style.zIndex = 2;
       fixation.style.position = "absolute";
-      fixation.style.border = "20px double #000000";
       fixation.style.visibility = "hidden";
       display_element.append(fixation);
 
@@ -330,7 +333,6 @@ jsPsych.plugins["bRMS"] = (function() {
         mondrian[i].height = frameHeight;
         mondrian[i].style.zIndex = 1;
         mondrian[i].style.position = "absolute";
-        mondrian[i].style.border = "20px double #000000";
         mondrian[i].style.opacity = 0;
         display_element.append(mondrian[i]);
 
@@ -339,7 +341,8 @@ jsPsych.plugins["bRMS"] = (function() {
         ctx.fillRect(0, 0, frameWidth, frameHeight)
         // Fill rect
         for (var j = 0; j < trial.rectNum; j++) {
-          ctx.fillStyle = trial.colorOpts[Math.floor(Math.random() * trial.colorOpts.length)];
+          ctx.fillStyle = trial.colorOpts[Math.floor(Math.random() *
+            trial.colorOpts.length)];
           ctx.fillRect(Math.round(Math.random() *
               (rectRange[2] - rectRange[0]) + rectRange[0]),
             Math.round(Math.random() * (rectRange[3] - rectRange[1]) + rectRange[1]),
@@ -356,9 +359,34 @@ jsPsych.plugins["bRMS"] = (function() {
       stimulus.height = frameHeight;
       stimulus.style.zIndex = 0;
       stimulus.style.position = "absolute";
-      stimulus.style.border = "20px double #000000";
       stimulus.style.opacity = 0;
       display_element.append(stimulus);
+
+      // Cover it all
+      var cover = document.createElement('canvas')
+      cover.id = 'stimulus';
+      cover.className = 'jspsych-brms-frame';
+      cover.width = frameWidth;
+      cover.height = frameHeight;
+      cover.style.zIndex = 3;
+      cover.style.position = "absolute";
+      cover.style.opacity = 1;
+      display_element.append(cover);
+
+      var ctx = cover.getContext("2d");
+      ctx.fillStyle = 'ghostwhite';
+      ctx.fillRect(0, 0, frameWidth+50, frameHeight+50)
+
+      var cover_text  = document.createElement('div');
+      cover_text.id = 'cover_text';
+      cover_text.className = 'jspsych-html-keyboard-response-stimulus'
+      cover_text.innerHTML = trial.prompt;
+      cover_text.style.zIndex = 4;
+      cover_text.style.position = "absolute";
+      cover_text.style.top = "50%";
+      cover_text.style.transform= "translate(-50%, -50%)";
+      display_element.append(cover_text)
+
 
       // Animation
 

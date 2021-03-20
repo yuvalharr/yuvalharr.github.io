@@ -245,7 +245,7 @@ jsPsych.plugins["bRMS"] = (function() {
 
         // clear the display
         display_element.innerHTML = '';
-        document.body.style.backgroundColor = "grey";
+        document.body.style.backgroundColor = "ghostwhite";
 
         // Return mouse
         //stylesheet.deleteRule(stylesheet.cssRules.length - 1);

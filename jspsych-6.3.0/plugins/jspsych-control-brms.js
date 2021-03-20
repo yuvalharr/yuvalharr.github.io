@@ -1,12 +1,12 @@
 /*
  * Example plugin template
  */
-jsPsych.plugins["bRMS"] = (function() {
+jsPsych.plugins["control-bRMS"] = (function() {
 
   var plugin = {};
 
   plugin.info = {
-    name: 'bRMS',
+    name: 'control-bRMS',
     description: '',
     parameters: {
       visUnit: {
@@ -114,6 +114,11 @@ jsPsych.plugins["bRMS"] = (function() {
         default: false,
         description: 'Whether to include vbl array in data: increases memory \
         requirements.'
+      },
+      isControl: {
+        type: jsPsych.plugins.parameterType.BOOL,
+        default: false,
+        description: "If 'true', target stimulus will be presented upon the mask (on the same frame), resulting in an unmasked control"
       }
     }
   }
@@ -123,7 +128,7 @@ jsPsych.plugins["bRMS"] = (function() {
   plugin.trial = function(display_element, trial) {
 
     // Clear previous
-    document.body.style.backgroundColor = "grey";
+    document.body.style.backgroundColor = "#c0c0c0" 
     display_element.innerHTML = '';
 
     setTimeout(function() {
@@ -245,7 +250,7 @@ jsPsych.plugins["bRMS"] = (function() {
 
         // clear the display
         display_element.innerHTML = '';
-        document.body.style.backgroundColor = "grey";
+        document.body.style.backgroundColor = "#c0c0c0";
 
         // Return mouse
         //stylesheet.deleteRule(stylesheet.cssRules.length - 1);
@@ -349,12 +354,13 @@ jsPsych.plugins["bRMS"] = (function() {
       }
 
       // Draw stimulus
+      var control = trial.isControl ? 1 : 0; // Use 1/0 in order to execute a control or brms task
       var stimulus = document.createElement('canvas')
       stimulus.id = 'stimulus';
       stimulus.className = 'jspsych-brms-frame';
       stimulus.width = frameWidth;
       stimulus.height = frameHeight;
-      stimulus.style.zIndex = 0;
+      stimulus.style.zIndex = control; // if control = 0, stimulus will be drawn upon mask frames. if control = 1, stimulus will be drawn between mask frames.
       stimulus.style.position = "absolute";
       stimulus.style.border = "20px double #000000";
       stimulus.style.opacity = 0;
