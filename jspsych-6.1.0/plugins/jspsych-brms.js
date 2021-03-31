@@ -231,8 +231,8 @@ jsPsych.plugins["bRMS"] = (function() {
           "stimulus": trial.stimulus,
           "stimulus_side": stimulus_side,
           "key_press": response.key,
-          "acc": (response.key == 68 & stimulus_side == 0) |
-            (response.key == 75 & stimulus_side == 1),
+          "acc": (response.key == 'd' & stimulus_side == 0) | // changed from 68 to 'd' to make compatible with jspsych 6.3.0
+            (response.key == 'k' & stimulus_side == 1), // changed from 75 to 'k' to make compatible with jspsych 6.3.0
           'animation_performance': mond,
           'bProblem': bProblem,
           'sProblem': sProblem,

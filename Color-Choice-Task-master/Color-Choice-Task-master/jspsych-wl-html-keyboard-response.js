@@ -158,8 +158,8 @@ jsPsych.plugins["wl-html-keyboard-response"] = (function() {
           response = info;
           if (response.rt > trial.hideButtonDuration) {
             data.RT = response.rt;
-            data.choice_key = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(response.key);
-            choice = trial.choice_keys.findIndex(x => x === data.choice_key.toUpperCase());
+            //data.choice_key = jsPsych.pluginAPI.convertKeyCodeToKeyCharacter(response.key);
+            choice = trial.choice_keys.findIndex(x => x === data.choice_key);
             if (choice === -1) {
               choice = 0;
             }
