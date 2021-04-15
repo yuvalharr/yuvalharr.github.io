@@ -194,14 +194,14 @@ jsPsych.plugins["wl-html-keyboard-response"] = (function() {
         html = '<div id="jspsych-html-button-response-stimulus">'+
           '<h3 class="instructions-text", align=center>End of block ' + trial.block.toString() + '/' + trial.blocks_total.toString() + '.<br><br>' +
           'You can take a short break now.<br><br></h3>';
-        html += '<p class="instructions-text">Current score: ' + trial.score.toString() + ' Points ($' + reward.toString() + ')<br><br><br>';
+        html += '<p class="instructions-text">Current score: ' + trial.score.toString() + ' Points<br><br><br>';
         html += 'Press space bar to start the next block.</p><br><br></h3>' +
           '<p class="instructions-text"></p><br><br>' + '</div>';
       } else if (trial.final_block) {
         html = '<div id="jspsych-html-button-response-stimulus">'+
           '<h3 class="instructions-text", align=center>End of last block!<br><br>';
         
-        html += 'Well done, your final score is ' + trial.points.toString() + ' Points ($' + reward.toString() + ')</h3>' +
+        html += 'Well done, your final score in this task is ' + trial.score.toString() + ' Points</h3>' +
           '<p class="instructions-text"></p><br><br>' + '</div>';
       }
     } else {
