@@ -7,13 +7,10 @@ library(plyr)
 library(dplyr)
 library(Hmisc)
 library(ggpubr)
-library(ppcor)
-library(tidyverse)
-library(htmlTable)
 
 # INITIAL DATA PREPERATION ----
+
 setwd ("C:/Users/yuval/Downloads/Experiment 1")
-#setwd ("C:/Users/yuval/Desktop/lab/Thesis/yuvalharr.github.io")
 
 # Get all file names in working directory above
 files = list.files(pattern="*.csv")
@@ -22,32 +19,30 @@ files = list.files(pattern="*.csv")
 dt = do.call(plyr::rbind.fill, lapply(files, fread))
 dt <- data.table(dt)
 
+setwd ("C:/Users/yuval/Desktop/lab/Thesis/yuvalharr.github.io")
+stimuli <- data.table::fread('stimuli.csv')
+stimuli$stimulus <- sub('.', '', stimuli$stimulus)
+
 # load both_sessions data
 setwd ("C:/Users/yuval/Downloads")
 both_sessions <- fread('both_sessions.csv')
 
-# all participants that have refreshed and will be discarded next - 
-# maybe can try and take from them pps that refreshed after fps check
-#refreshed <- dt %>%
-#  group_by(id) %>%
-#  filter(length(unique(start_time)) > 1) %>%
-#  ungroup()
-#refreshed <- data.table(refreshed)
+discard_stimuli <- stimuli[stimulus_rank <= 20,]
+dt <- dt[!(stimulus %in% discard_stimuli$stimulus)]
 
-# delete all participants with more than one start-time (meaning they refreshed page)
-#dt <- dt %>%
-#  group_by(id) %>%
-#  filter(length(unique(start_time)) == 1) %>%
-#  ungroup()
-
-dt <- data.table(dt)
 
 dt <- dt[, run_id:=as.numeric(as.character(run_id))] # make run_id numeric for taking minimum later
+dt <- dt[, cb_trial:=as.numeric(as.character(cb_trial))] # make cb_trial numeric for counting num of trials later
+
 dt <- dt[, .SD[run_id == min(run_id)], by = id] # keep only min run_id for each pp. Removes multiple runs for some pps.
 
-finished_exp <- unique(dt[cb_trial == 30, id]) # mark as finished if last cb trial exists
+cb_trials_num <- dt[,list(trials= length(unique(cb_trial))), by=id]
+finished_exp <- cb_trials_num[trials >= 11, id] # mark as finished if at least 11 trials (11 because na counts as one)
 unfinished <- dt[!(id %in% finished_exp)] # unfinished experiments are saved here before removal
 dt <- dt[id %in% finished_exp,] # keep only finished experiments
+
+#dt2 = subset(dt2, select = -c(condition)) # remove one 'condition' column (for some reason there are two) 
+#dt <- rbind(dt, dt2)
 
 # Convert column types
 dt <- dt[, rt:=as.double(as.character(rt))] # make rt column as double instead of string
@@ -67,53 +62,6 @@ summary(dt)
 only_animation <- dt[trial_type == 'animation'] # take only animation trials
 only_animation <- dt[cb_trial >= 1] # discard demo trials
 
-only_brms <- dt[trial_type == 'bRMS']
-only_brms <- only_brms[is.na(training),] # discard demo trials
-
-
-# Clean brms data -------
-
-# Keep only trials with good animation
-only_brms <- only_brms[bProblem == 0 & sProblem < 5]
-
-# keep only subjects with 30 good BRMS trials
-trialCount <- only_brms[, .(trials = .N), by = id]
-trialCount <- trialCount[trials >= 30] 
-only_brms <- only_brms[id %in% trialCount$id]
-
-# Keep only correct trials
-only_brms <- only_brms[acc == 1]
-
-  
-# Exclude short trials
-only_brms <- only_brms[rt > 200]
-
-# Exclude long trials
-only_brms <- only_brms[rt < 28000]
-
-# keep only subjects with >30 correct trials (sufficiant for NPS accuracy)
-trialCount <- only_brms[, .(trials = .N), by = id]
-
-trialCount <- trialCount[trials >= 30]
-only_brms <- only_brms[id %in% trialCount$id]
-#only_animation <- only_animation[id %in% trialCount$id] # removed for now. Now taking all CB even if brms data is from both sessions together or the 2nd alone
-
-# Exclude outlier trials per subject
-only_brms[, zrt := scale(rt), by = id]  #ask yaniv: should i scale again after removing extreme z scores?
-only_brms <- only_brms[abs(zrt) < 3]
-
-# Extract viewing distance
-dt[, view_dist_mm:=as.double(view_dist_mm)] # make distance column as double instead of string
-distance_dt <- dt[!(is.na(view_dist_mm)),.(id, view_dist_mm)]
-
-# merge distance with brms summary
-brms_summary <- only_brms[, .(brms_rt = mean(rt)), by = id]
-brms_summary <- merge(brms_summary,distance_dt, by = 'id')
-
-ggplot(brms_summary, aes(x = brms_rt, y = view_dist_mm)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
 
 # Clean CB data -------
 
@@ -138,14 +86,12 @@ cb_summary <- merge(cb_rt, cb_acc) %>%
   merge(cb_num_wrongs) %>%
   merge(cb_rt_with_unanswered_trials)
 
-
-all_summary <- merge(brms_summary, cb_summary, by = 'id', all = T)
-all_summary <- merge(all_summary, both_sessions) # add both sessions data to all_summary
+brms_summary <- both_sessions
+all_summary <- merge(brms_summary, cb_summary, by = 'id')
 only_animation <- merge(only_animation, all_summary[,.(brms_rt_both, id)]) # add mean brms score for each sbj
 
 
 boxplot(rt~id, data= only_animation)  
-boxplot(rt~id, data= only_brms) 
 
 # Violin plot for BRMS average RT per subject
 p <- ggplot(brms_summary, aes(x=as.factor(1), y=brms_rt_both)) + 
@@ -156,25 +102,8 @@ p + geom_jitter(shape=16, position=position_jitter(0.03)) +
 # histogram of average BRMS
 h = hist(all_summary$brms_rt_both, breaks = c(seq(from = 0, to = 30000, by = 1000)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
 h$density = h$counts/sum(h$counts)*100
-plot(h,freq=FALSE, main = "NPS distribution - session 1", xlab = "NPS (ms)", ylab = "% of participants")
-abline(v = mean(all_summary$brms_rt_both, na.rm = T), col = 'red')
-
-# histogram of average BRMS- session 2
-h = hist(all_summary$brms_rt_2, breaks = c(seq(from = 0, to = 30000, by = 1000)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
-h$density = h$counts/sum(h$counts)*100
-plot(h,freq=FALSE, main = "NPS distribution - session 2", xlab = "NPS (ms)", ylab = "% of participants")
-abline(v = mean(all_summary$brms_rt, na.rm = T), col = 'red')
-
-# histogram of average Control brms
-h = hist(all_summary$control_rt_1, breaks = c(seq(from = 0, to = 30000, by = 1000)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
-h$density = h$counts/sum(h$counts)*100
-plot(h,freq=FALSE, main = "Control 1 distribution", xlab = "NPS (ms)", ylab = "% of participants")
-abline(v = mean(all_summary$control_rt_1, na.rm = T), col = 'red')
-
-h = hist(all_summary$control_rt_2, breaks = c(seq(from = 0, to = 30000, by = 1000)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
-h$density = h$counts/sum(h$counts)*100
-plot(h,freq=FALSE, main = "Control 2 distribution", xlab = "NPS (ms)", ylab = "% of participants")
-abline(v = mean(all_summary$control_rt_2, na.rm = T), col = 'red')
+plot(h,freq=FALSE, main = "NPS distribution", xlab = "NPS (ms)", ylab = "% of participants")
+abline(v = mean(all_summary$brms_rt_both), col = 'red')
 
 p2 <- ggplot(cb_summary, aes(x=as.factor(1), y=cb_rt)) + 
   geom_violin()
@@ -187,17 +116,19 @@ p3 + geom_jitter(shape=16, position=position_jitter(0.03)) +
   stat_summary(fun.y=mean, geom="point", shape=23, size=3, color = "red")
 
 # histogram of average CB RT *including* unanswered trials as 60 s
-h = hist(cb_summary$cb_rt_with_unfinished/1000, breaks = c(seq(from = 0, to = 40, by = 2.5)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
+h = hist(cb_summary$cb_rt_with_unfinished/1000, breaks = c(seq(from = 0, to = 60, by = 2.5)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
 h$density = h$counts/sum(h$counts)*100
 plot(h,freq=FALSE, main = "CB scores distribution", xlab = "Average CB rt (sec)", ylab = "% of participants")
 abline(v = mean(cb_summary$cb_rt_with_unfinished/1000), col = 'red')
 
 # histogram of average CB RT *not* including unanswered trials
-h = hist(cb_summary$cb_rt/1000, breaks = c(seq(from = 0, to = 30, by = 2.5)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
+h = hist(cb_summary$cb_rt/1000, breaks = c(seq(from = 0, to = 50, by = 2.5)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
 h$density = h$counts/sum(h$counts)*100
 plot(h,freq=FALSE)
 abline(v = mean(cb_summary$cb_rt/1000), col = 'red')
 
+
+# Connection between CB acc and CB RT
 cor.test(all_summary$cb_rt, all_summary$cb_rt_with_unfinished)
 ggplot(all_summary, aes(x = cb_rt, y = cb_rt_with_unfinished)) +
   geom_point() +
@@ -208,7 +139,6 @@ ggplot(all_summary, aes(x = cb_rt, y = cb_rt_with_unfinished)) +
   scale_x_continuous(expand = c(0, 500), limits = c(0, NA), breaks = seq(0, 30000, by = 10000)) + 
   scale_y_continuous(expand = c(0, 500), limits = c(0, NA), breaks = seq(0, 30000, by = 10000))
 
-# Connection between CB acc and CB RT
 cor.test(all_summary$cb_rt, all_summary$cb_acc)
 ggplot(all_summary, aes(x = cb_rt, y = cb_acc)) +
   geom_point() +
@@ -238,8 +168,8 @@ d.f <- arrange(only_animation,brms_rt_both,rt)
 d.f.ecdf <- ddply(d.f, .(brms_rt_both), transform, ecdf=ecdf(rt)(rt) )
 p <- ggplot( d.f.ecdf, aes(rt, ecdf, group = id, colour = brms_rt_both))
 p + geom_line() + coord_cartesian(xlim = c(0, 60000), ylim = c(0, 1)) + scale_color_gradient2( low = "red", midpoint = mid, mid = "white",  #can use scale_color_gradient2 as well
-                                                                                              high = "black", space = "Lab" ) +
-    ggtitle('Accumulated CB proportion correct at each time point per participant') +
+                                                                                               high = "black", space = "Lab" ) +
+  ggtitle('Accumulated CB proportion correct at each time point per participant') +
   xlab ('Cut-off point (ms)') + ylab ('% Correct')
 
 # MAKE CB CUMULATIVE % CORRECT GRAPH PER  DECILE----
@@ -278,7 +208,7 @@ d.f <- as.data.table(d.f)
 participants_params <- data.frame() # create table for model parameters
 
 for (i in unique(d.f$id)) {
-
+  
   participant_1 <- d.f[id == as.factor(i), ] # subset one participant
   # fit function to data
   fit <- nls(cum_correct ~ alpha*exp(b/rt_sec),data=participant_1,
@@ -293,14 +223,14 @@ for (i in unique(d.f$id)) {
   
   p <- ggplot( participant_1, aes(rt_sec, cum_correct))
   #print(p + geom_point() + coord_cartesian(xlim = c(0, 60), ylim = c(0, 1)) +
-          #ggtitle('Accumulated CB proportion correct at each time point') +
-          #xlab ('Cut-off point (sec)') + ylab ('% Correct')  +
-          #geom_line(aes(x = rt_sec, y = pred), color = "red") +
-          #annotate("text", x=40, y=0.2, label= paste("alpha: ", round(as.numeric(params[1]), 2) ," ", "beta: ", round(as.numeric(params[2]), 2), " ", "cor: ", round(cor, 2)))
+  #ggtitle('Accumulated CB proportion correct at each time point') +
+  #xlab ('Cut-off point (sec)') + ylab ('% Correct')  +
+  #geom_line(aes(x = rt_sec, y = pred), color = "red") +
+  #annotate("text", x=40, y=0.2, label= paste("alpha: ", round(as.numeric(params[1]), 2) ," ", "beta: ", round(as.numeric(params[2]), 2), " ", "cor: ", round(cor, 2)))
   #)
-
-}
   
+}
+
 all_summary <- merge(all_summary, participants_params)
 all_summary[, mean_beta:=mean(beta), by=list(brms_quentile)]
 
@@ -312,12 +242,12 @@ d.f_deciles <- d.f_deciles[!is.na(d.f_deciles$success),] # remove unfinished tri
 
 
 p <- ggplot( d.f_deciles, aes(rt_sec, ecdf, group = brms_quentile, colour = factor(brms_quentile))) +
-        geom_line() + scale_color_brewer(type = "div", palette = "RdBu", name = "bRMS decile", labels = c("1 - fastest NPS", "2", "9", "10 - slowest NPS")) + 
-        coord_cartesian(xlim = c(0, 60), ylim = c(0, 1)) +
-        ggtitle('Accumulated CB proportion correct at each time point') +
-        xlab ('Cut-off point (sec)') + ylab ('% Correct') 
+  geom_line() + scale_color_brewer(type = "div", palette = "RdBu", name = "bRMS decile", labels = c("1 - fastest NPS", "2", "9", "10 - slowest NPS")) + 
+  coord_cartesian(xlim = c(0, 60), ylim = c(0, 1)) +
+  ggtitle('Accumulated CB proportion correct at each time point') +
+  xlab ('Cut-off point (sec)') + ylab ('% Correct') 
 
-        
+
 p
 
 # Check accuracy at different time points ----
@@ -361,7 +291,7 @@ cb_acc <- merge(cb_acc, cb_acc_10s) %>%
 all_summary <- merge(cb_acc, all_summary)
 #cor_matrix <- all_summary[,c(2:9, 12:15)]
 all_summary <- data.table(all_summary)
-cor_matrix <- all_summary[,c(8,15,13,22,4,6,2,12,24:25)] # for presentation only
+cor_matrix <- all_summary[,c(10,8,17,4,6,2,20,22:23)] # for presentation only
 
 
 setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
@@ -373,44 +303,24 @@ setnames(cor_matrix, 'cb_rt_with_unfinished', "CB RT")
 library(psych)
 library(corrplot)
 cor_results <- corr.test(cor_matrix, adjust = "none")
-corrplot(cor_results$r, p.mat = cor_results$p, insig = "blank",type = "full", method = "color",addCoef.col = "black", tl.col = "black")
-
-a<- partial.r(cor_matrix, x = c("NPS both", "cb_acc_20s","cb_acc_40s", "cb_acc_60s","CB RT", "alpha"), y = c("Control RT both"), use="pairwise",method="pearson")
-cp <- corr.p(a, n = 50, adjust="holm",alpha=.05)
-print(cp) 
-
-
-
-##################################################
-
-temp <- cor_matrix[complete.cases(cor_matrix[ , c("NPS both","Control RT both", "cb_acc_20s","cb_acc_40s", "cb_acc_60s","CB RT", "alpha")]),]
-b <- pcor(temp[,c("NPS both","Control RT both", "cb_acc_20s","cb_acc_40s", "cb_acc_60s","CB RT", "alpha")])
-
-######################################
+corrplot(cor_results$r, p.mat = cor_results$p, type = "upper", insig = "blank", method = "color",addCoef.col = "black", tl.col = "black")
 
 
 # Make a table only for brms rt
-p_for_correction <- cor_results$p["NPS both",]
-r_for_correction <- cor_results$r["NPS both",]
+p_for_correction <- cor_results$p["brms_rt_both",]
+r_for_correction <- cor_results$r["brms_rt_both",]
 bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
-bh_table <- bh_table[rn != "NPS both"]
+bh_table <- bh_table[rn != "brms_rt_both"]
 bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
 colnames(bh_table) <- c("comparison","R", "p", "corrected_p")
 bh_table[,2:4] <- round(bh_table[,2:4],3)
 cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
 
 bh_all_participants <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
-bh_all_participants
 
-# control for control task
-temp <- all_summary[complete.cases(all_summary[ , c('brms_rt', 'cb_rt', 'control_rt_1')]),]
-pcor.test(x=temp[,brms_rt], y=temp[, cb_rt], z=temp[, control_rt_1]) # account for control
-
-temp <- all_summary[complete.cases(all_summary[ , c('brms_rt', 'alpha', 'control_rt_1')]),]
-pcor.test(x=temp[,brms_rt], y=temp[, alpha], z=temp[, control_rt_1]) # account for control
 
 # Check only on participants with NPS of less then 5 sec ----
-cor_matrix <- all_summary[brms_rt_both < 5000,c(2,4,6,8:9,12,14,19,23:24)]
+cor_matrix <- all_summary[brms_rt_both < 5000,c(4,6,2,8, 12, 14:15)]
 setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
 setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
 cor_results <- corr.test(cor_matrix, adjust = "BH")
@@ -435,7 +345,7 @@ cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
 bh_less_then_5s <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
 
 # Check only on participants with NPS of less then 10 sec ----
-cor_matrix <- all_summary[brms_rt_both < 10000,c(2,4,6,8:9,12,14,19,23:24)]
+cor_matrix <- all_summary[brms_rt_both < 10000,c(4,6,2,8, 12, 14:15)]
 setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
 setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
 cor_results <- corr.test(cor_matrix, adjust = "hoch")
@@ -454,7 +364,7 @@ cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
 bh_less_then_10s <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
 
 # Check only on participants with NPS of less then 20 sec ----
-cor_matrix <- all_summary[brms_rt_both < 20000,c(2,4,6,8:9,12,14,19,23:24)]
+cor_matrix <- all_summary[brms_rt_both < 20000,c(4,6,2,8, 12, 14:15)]
 setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
 setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
 cor_results <- corr.test(cor_matrix, adjust = "hoch")
@@ -471,8 +381,6 @@ bh_table[,2:4] <- round(bh_table[,2:4],3)
 cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
 
 bh_less_then_20s <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
-bh_less_then_20s
-
 
 # Make a CB accumalated acc plot based on bRMS groups (with SD whiskers) ----
 d.f_i <- arrange(only_animation,brms_rt_both,rt)
@@ -539,7 +447,6 @@ p<- ggplot(df.summary, aes(x=time_sec, y=mean, group=rank, color=rank)) +
   geom_point() +
   geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.5,
                 position=position_dodge(0.4))
-p
 
 # Kolmogorov-Smirnov Test to test the significant difference of two cummulative functions
 library(dgof)
@@ -574,42 +481,17 @@ ggplot(all_summary, aes(x = brms_rt_both, y = beta)) +
   geom_point() +
   geom_smooth(method='lm')
 
-cor.test(all_summary$cb_rt_with_unfinished, all_summary$view_dist_mm)
-ggplot(all_summary, aes(x = cb_rt_with_unfinished, y = view_dist_mm)) +
-  geom_point() +
-  geom_smooth(method='lm')
-
-cor.test(all_summary$cb_acc_40s, all_summary$view_dist_mm)
-ggplot(all_summary, aes(x = cb_acc_40s, y = view_dist_mm)) +
-  geom_point() +
-  geom_smooth(method='lm')
-
-ggplot(all_summary, aes(x = brms_rt_1, y = cb_acc_20s)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  ggtitle("Correlation between NPS and alpha")+
-  stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
-
-ggplot(all_summary, aes(x = control_rt_1, y = cb_acc_20s)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  ggtitle("Correlation between Control and alpha")+
-  stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
-
-
-
-
 # look only on participants with NPS of less then 20 sec
 all_summary <- data.table(all_summary)
 cor.test(all_summary[brms_rt_both < 20000, brms_rt_both], all_summary[brms_rt_both < 20000, alpha])
 ggplot(all_summary[brms_rt_both < 20000], aes(x = brms_rt_both, y = alpha)) +
   geom_point() +
   geom_smooth(method='lm') 
-pcor.test(x=all_summary[brms_rt_both < 20000, brms_rt_both], y=all_summary[brms_rt_both < 20000, alpha], z=all_summary[brms_rt_both < 20000, distance]) # account for distance
+pcor.test(x=all_summary[brms_rt_both < 20000, brms_rt_both], y=all_summary[brms_rt_both < 20000, alpha], z=all_summary[brms_rt_both < 20000, distance]) # acount for distance
 
-model <- lm(brms_rt_both ~ alpha + cb_acc_20s + view_dist_mm, data = all_summary)
+model <- lm(brms_rt_both ~ alpha + cb_acc_20s + distance, data = all_summary)
 summary(model)
-  
+
 cor.test(all_summary$brms_quentile, all_summary$alpha)
 ggplot(all_summary, aes(x = brms_quentile, y = alpha)) +
   geom_point() +
@@ -617,8 +499,19 @@ ggplot(all_summary, aes(x = brms_quentile, y = alpha)) +
   annotate("text", x=3, y=0.9, label = "cor= - 0.43.   p < 0.01 ")
 
 
+# Check correlation of BRMS and CB (without unfinished) between participants
+cor.test(all_summary$brms_rt_both, all_summary$cb_rt)
+ggplot(all_summary, aes(x = brms_rt_both, y = cb_rt)) +
+  geom_point() +
+  geom_smooth(method='lm')
 
-pcor.test(x=all_summary$cb_rt_with_unfinished, y=all_summary$brms_rt_both, z=all_summary$view_dist_mm)
+# Check correlation of BRMS and CB (with unfinished trials) between participants
+cor.test(all_summary$brms_rt_both, all_summary$cb_rt_with_unfinished)
+ggplot(all_summary, aes(x = brms_rt_both, y = cb_rt_with_unfinished)) +
+  geom_point() +
+  geom_smooth(method='lm') 
+
+pcor.test(x=all_summary$cb_rt_with_unfinished, y=all_summary$brms_rt_both, z=all_summary$distance)
 
 cor.test(all_summary$brms_quentile, all_summary$cb_rt_with_unfinished)
 ggplot(all_summary, aes(x = brms_quentile, y = cb_rt_with_unfinished)) +
@@ -690,28 +583,28 @@ only_quest <- data.table(only_quest)
 
 
 dems <- only_quest[, .(gender = fromJSON(responses[internal_node_id == "0.0-11.0-1.0"])$'gender',
-                     hand = fromJSON(responses[internal_node_id == "0.0-11.0-1.0"])$'hand',
-                     native = fromJSON(responses[internal_node_id == "0.0-11.0-1.0"])$'native',
-                     age = as.numeric(fromJSON(responses[internal_node_id == "0.0-11.0-2.0"])$'age'),
-                     attention = fromJSON(responses[internal_node_id == "0.0-11.0-3.0"])$'add',
-                     q1 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q1',
-                     q2 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q2',
-                     q3 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q3',
-                     q4 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q4',
-                     q5 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q5',
-                     q6 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q6',
-                     q7 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q7',
-                     q8 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q8',
-                     q9 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q9',
-                     q10 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q10',
-                     q11 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q11',
-                     q12 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q12',
-                     driver = fromJSON(responses[internal_node_id == "0.0-11.0-12.0"])$'is_driver',
-                     driving_abilities = responses[internal_node_id == "0.0-12.0-0.0"],
-                     driver_accidents = responses[internal_node_id == "0.0-12.0-1.0"],
-                     pedestrian_accidents = fromJSON(responses[internal_node_id == "0.0-13.0-0.0"])$'Q0'
-                     ),
-                     by = .(id)]
+                       hand = fromJSON(responses[internal_node_id == "0.0-11.0-1.0"])$'hand',
+                       native = fromJSON(responses[internal_node_id == "0.0-11.0-1.0"])$'native',
+                       age = as.numeric(fromJSON(responses[internal_node_id == "0.0-11.0-2.0"])$'age'),
+                       attention = fromJSON(responses[internal_node_id == "0.0-11.0-3.0"])$'add',
+                       q1 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q1',
+                       q2 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q2',
+                       q3 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q3',
+                       q4 = fromJSON(responses[internal_node_id == "0.0-11.0-9.0"])$'q4',
+                       q5 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q5',
+                       q6 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q6',
+                       q7 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q7',
+                       q8 = fromJSON(responses[internal_node_id == "0.0-11.0-10.0"])$'q8',
+                       q9 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q9',
+                       q10 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q10',
+                       q11 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q11',
+                       q12 = fromJSON(responses[internal_node_id == "0.0-11.0-11.0"])$'q12',
+                       driver = fromJSON(responses[internal_node_id == "0.0-11.0-12.0"])$'is_driver',
+                       driving_abilities = responses[internal_node_id == "0.0-12.0-0.0"],
+                       driver_accidents = responses[internal_node_id == "0.0-12.0-1.0"],
+                       pedestrian_accidents = fromJSON(responses[internal_node_id == "0.0-13.0-0.0"])$'Q0'
+),
+by = .(id)]
 
 dems[!(is.na(driving_abilities)), c('driving_ability', 'driving_accidents') := 
        list(as.numeric(fromJSON(driving_abilities)), as.numeric(fromJSON(driver_accidents))), 
@@ -786,7 +679,6 @@ stimuli <- only_animation[,list(stimulus_mean=mean(rt),sd=sd(rt)),by=stimulus]
 stimuli$stimulus_rank <- NA
 order.mean<-order(stimuli$stimulus_mean,stimuli$stimulus)
 stimuli$stimulus_rank[order.mean] <- 1:nrow(stimuli)
-stimuli <- stimuli[stimulus_rank <= 30] # to remove unwanted empty stimuli
 
 cor.test(stimuli$stimulus_mean, stimuli$sd)
 ggplot(stimuli, aes(x = stimulus_mean, y = sd)) +
@@ -811,7 +703,7 @@ temp <- data.frame(temp)
 
 p<-ggplot(temp, aes(reorder(stimulus,rt,na.rm = TRUE), y=rt, fill = brms_group)) +
   geom_boxplot()
-  
+
 p
 
 require(ggpubr)
@@ -829,9 +721,7 @@ only_animation <- merge(only_animation, stimuli[, c("stimulus","stimulus_mean", 
 
 # Can CB abilities explain CB performance better in the "hard" stimuli vs the "easy" ones?
 
-#only_animation <- merge(only_animation, all_summary[, c("id","cb_rt_with_unfinished", "alpha", "beta", "cb_acc_20s", "cb_acc_40s", "total_hsp")], by="id") # disabled for now because total_hsp isnt working yet
-only_animation <- merge(only_animation, all_summary[, c("id","cb_rt_with_unfinished", "alpha", "beta", "cb_acc_20s", "cb_acc_40s")], by="id")
-
+only_animation <- merge(only_animation, all_summary[, c("id","cb_rt_with_unfinished", "alpha", "beta", "cb_acc_20s", "cb_acc_40s", "total_hsp")], by="id")
 easy_stimuli <- only_animation[stimulus_rank <= 10]
 hard_stimuli <-  only_animation[stimulus_rank >= 21]
 
@@ -930,12 +820,11 @@ big_data <- big_data[,c(2:3,5)]
 big_data$time_sec <- as.factor(big_data$time_sec)
 library(dplyr)
 df.summary <- big_data %>%
-  dplyr::group_by(time_sec, rank) %>%
-  dplyr::summarise(
+  group_by(time_sec, rank) %>%
+  summarise(
     sd = sd(cb_acc, na.rm = TRUE),
     mean = mean(cb_acc)
   )
-
 df.summary <- data.table(df.summary)
 
 ks <- ks.test(df.summary[rank == "best", mean], df.summary[rank == "worst", mean])
@@ -962,8 +851,8 @@ big_data <- big_data[,c(2:3,5)]
 big_data$time_sec <- as.factor(big_data$time_sec)
 library(dplyr)
 df.summary <- big_data %>%
-  dplyr::group_by(time_sec, rank) %>%
-  dplyr::summarise(
+  group_by(time_sec, rank) %>%
+  summarise(
     sd = sd(cb_acc, na.rm = TRUE),
     mean = mean(cb_acc)
   )
@@ -1061,7 +950,7 @@ ggplot(only_cocky_drivers, aes(x = brms_rt_both, y = driving_accidents)) +
   geom_smooth(method='lm') +
   ggtitle("Correlation between NPS and driving accidents")+
   stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
-pcor.test(x=only_cocky_drivers$brms_rt_both, y=only_cocky_drivers$driving_accidents, z=only_cocky_drivers$age) # account for distance
+pcor.test(x=only_cocky_drivers$brms_rt_both, y=only_cocky_drivers$driving_accidents, z=only_cocky_drivers$age) # acount for distance
 
 
 # Look at CB stimuli rt in comparison with stimuli Database ----
@@ -1080,13 +969,3 @@ ggplot(cb_stimuli, aes(x = mean_rt/1000, y = db_rt)) +
   xlab("Experiment mean rt (sec)") +
   ylab("Database mean rt (sec)") +
   geom_abline(slope=1, intercept = 0, color = "red", linetype = "dashed")
-
-
-cor.test(only_cocky_drivers$brms_rt_both, only_cocky_drivers$driving_ability)
-ggplot(all_summary[brms_rt_both <5000,], aes(x = brms_rt_both, y = beta)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  ggtitle("")+
-  stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
-
-

@@ -1,3 +1,15 @@
+library(data.table)
+library(ggplot2)
+library(rjson)
+library(ez)
+library(plyr)
+library(dplyr)
+library(Hmisc)
+library(ggpubr)
+library(ppcor)
+library(tidyverse)
+library(htmlTable)
+
 # INITIAL DATA PREPERATION ----
 setwd ("C:/Users/yuval/Downloads/Experiment 1")
 # Get all file names in working directory above
@@ -13,39 +25,52 @@ second_files = list.files(pattern="*.csv")
 second = do.call(plyr::rbind.fill, lapply(second_files, fread))
 second <- data.table(second)
 
+# LOOK AT TRYING TO SWITCH THE REFRESH ELIMINATION WITH RUN ID DUPLICATES (LIKE IN THE OTHER SCRIPTS) !!!!!!!!!!!!!!!!!!!!!!!!!!
+#####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 # all participants that have refreshed and will be discarded next - 
 # maybe can try and take from them pps that refreshed after fps check
-refreshed_1 <- first %>%
-  group_by(id) %>%
-  filter(length(unique(start_time)) > 1) %>%
-  ungroup()
-refreshed_1 <- data.table(refreshed_1)
-unique(refreshed_1$id)
+#refreshed_1 <- first %>%
+#  group_by(id) %>%
+#  filter(length(unique(start_time)) > 1) %>%
+#  ungroup()
+#refreshed_1 <- data.table(refreshed_1)
+#unique(refreshed_1$id)
 
-refreshed_2 <- second %>%
-  group_by(id) %>%
-  filter(length(unique(start_time)) > 1) %>%
-  ungroup()
-refreshed_2 <- data.table(refreshed_2)
-unique(refreshed_2$id)
+#refreshed_2 <- second %>%
+#  group_by(id) %>%
+#  filter(length(unique(start_time)) > 1) %>%
+#  ungroup()
+#refreshed_2 <- data.table(refreshed_2)
+#unique(refreshed_2$id)
 
 # list of all participants that submitted to more than one part 2 HIT
-cheaters <- c('A1MAT8TVA0P9PU', 'A3PR7FCPPZ88JR', 'A2KMED79GMTHF9','A161PY8QJHF3IK', 'A179M1VP5QMHNW','A39FJ8DCK0T28','A1JADORW8YJNOT','A28GWWTH0HOFCE', 'AC1NK8NJ84V8Y','A1WIRNAFVTFNJL','A1BDPHQIAOC1WB')
+#cheaters <- c('A1MAT8TVA0P9PU', 'A3PR7FCPPZ88JR', 'A2KMED79GMTHF9','A161PY8QJHF3IK', 'A179M1VP5QMHNW','A39FJ8DCK0T28','A1JADORW8YJNOT','A28GWWTH0HOFCE', 'AC1NK8NJ84V8Y','A1WIRNAFVTFNJL','A1BDPHQIAOC1WB')
 
 # delete all participants with more than one start-time (meaning they refreshed page)
-first <- first %>%
-  group_by(id) %>%
-  filter(length(unique(start_time)) == 1) %>%
-  ungroup()
+#first <- first %>%
+#  group_by(id) %>%
+#  filter(length(unique(start_time)) == 1) %>%
+#  ungroup()
 
-first <- data.table(first)
+#second <- second %>%
+#  group_by(id) %>%
+#  filter(length(unique(start_time)) == 1) %>%
+#  ungroup()
 
-second <- second %>%
-  group_by(id) %>%
-  filter(length(unique(start_time)) == 1) %>%
-  ungroup()
 
-second <- data.table(second)
+first <- first[, run_id:=as.numeric(as.character(run_id))] # make run_id numeric for taking minimum later
+first <- first[, .SD[run_id == min(run_id)], by = id] # keep only min run_id for each pp. Removes multiple runs for some pps.
+finished_exp_1 <- unique(first[cb_trial == 30, id]) # mark as finished if last cb trial exists
+unfinished_1 <- first[!(id %in% finished_exp_1)] # unfinished experiments are saved here before removal
+first <- first[id %in% finished_exp_1,] # keep only finished experiments
+
+second <- second[, run_id:=as.numeric(as.character(run_id))] # make run_id numeric for taking minimum later
+second <- second[, .SD[run_id == min(run_id)], by = id] # keep only min run_id for each pp. Removes multiple runs for some pps.
+second <- second[, control_trial:=as.numeric(as.character(control_trial))]
+finished_exp_2 <- unique(second[control_trial == 11, id]) # mark as finished if last control trial exists
+unfinished_2 <- first[!(id %in% finished_exp_2)] # unfinished experiments are saved here before removal
+second <- second[id %in% finished_exp_2,] # keep only finished experiments
 
 # count participants
 unique(first$id)
@@ -102,10 +127,10 @@ both_brms <- rbind(only_brms_1, only_brms_2, fill = T) # make one big dt for bot
 
 # keep only subjects with 30 good BRMS trials
 trialCount_1 <- only_brms_1[, .(trials = .N), by = id]
-trialCount_1 <- trialCount_1[trials >= 20] 
+trialCount_1 <- trialCount_1[trials >= 30] 
 only_brms_1 <- only_brms_1[id %in% trialCount_1$id]
 trialCount_2 <- only_brms_2[, .(trials = .N), by = id]
-trialCount_2 <- trialCount_2[trials >= 20] 
+trialCount_2 <- trialCount_2[trials >= 30] 
 only_brms_2 <- only_brms_2[id %in% trialCount_2$id]
 
 trialCount_both <- both_brms[, .(trials = .N), by = id]
@@ -133,9 +158,9 @@ trialCount_2 <- only_brms_2[, .(trials = .N), by = id]
 trialCount_both <- both_brms[, .(trials = .N), by = id]
 
 
-trialCount_1 <- trialCount_1[trials >= 20]
-trialCount_2 <- trialCount_2[trials >= 20]
-trialCount_both <- trialCount_both[trials >= 20]
+trialCount_1 <- trialCount_1[trials >= 30]
+trialCount_2 <- trialCount_2[trials >= 30]
+trialCount_both <- trialCount_both[trials >= 30]
 
 
 only_brms_1 <- only_brms_1[id %in% trialCount_1$id]
