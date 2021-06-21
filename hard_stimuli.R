@@ -14,7 +14,7 @@ setwd ("C:/Users/yuval/Desktop/lab/Thesis/yuvalharr.github.io")
 dt <- read.csv('28.1.csv')
 dt <- as.data.table(dt)
 
-stimuli <- data.table::fread('stimuli.csv')
+stimuli <- data.table::fread('stimuli_old.csv')
 stimuli$stimulus <- sub('.', '', stimuli$stimulus)
 
 discard_stimuli <- stimuli[stimulus_rank < 21,]
@@ -57,9 +57,7 @@ only_brms <- only_brms[is.na(training),] # discard demo trials
 # Keep only trials with good animation
 only_brms <- only_brms[bProblem == 0 & sProblem < 5]
 
-# keep only subjects with 30 good BRMS trials
-trialCount <- only_brms[, .(trials = .N), by = id]
-trialCount <- trialCount[trials >= 30] 
+
 only_brms <- only_brms[id %in% trialCount$id]
 
 # Keep only correct trials
@@ -314,17 +312,35 @@ cb_acc <- merge(cb_acc, cb_acc_10s) %>%
 all_summary <- merge(cb_acc, all_summary)
 #cor_matrix <- all_summary[,c(2:9, 12:15)]
 all_summary <- data.table(all_summary)
-cor_matrix <- all_summary[,c(4,6,2,8, 12, 14:15)] # for presentation only
+cor_matrix <- all_summary[,c(3,4,5,6,7,2,8, 12, 14:15)] # for presentation only
+
+mean(all_summary$cb_acc_10s)
+sd(all_summary$cb_acc_10s)
+mean(all_summary$cb_acc_20s)
+sd(all_summary$cb_acc_20s)
+mean(all_summary$cb_acc_30s)
+sd(all_summary$cb_acc_30s)
+mean(all_summary$cb_acc_40s)
+sd(all_summary$cb_acc_40s)
+mean(all_summary$cb_acc_50s)
+sd(all_summary$cb_acc_50s)
+mean(all_summary$cb_acc)
+sd(all_summary$cb_acc)
 
 
-setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
-setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
+
+setnames(cor_matrix, 'cb_rt_with_unfinished', "RT")
+setnames(cor_matrix, 'cb_acc_10s', "10 s accuracy")
+setnames(cor_matrix, 'cb_acc_20s', "20 s accuracy")
+setnames(cor_matrix, 'cb_acc_30s', "30 s accuracy")
+setnames(cor_matrix, 'cb_acc_40s', "40 s accuracy")
+setnames(cor_matrix, 'cb_acc_50s', "50 s accuracy")
+setnames(cor_matrix, 'cb_acc', "60 s accuracy")
 
 library(psych)
 library(corrplot)
 cor_results <- corr.test(cor_matrix, adjust = "none")
 corrplot(cor_results$r, p.mat = cor_results$p, type = "upper", insig = "blank", method = "color",addCoef.col = "black", tl.col = "black")
-
 
 # Make a table only for brms rt
 p_for_correction <- cor_results$p["brms_rt",]
@@ -332,12 +348,12 @@ r_for_correction <- cor_results$r["brms_rt",]
 bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
 bh_table <- bh_table[rn != "brms_rt"]
 bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
-colnames(bh_table) <- c("comparison","R", "p", "corrected_p")
-bh_table[,2:4] <- round(bh_table[,2:4],3)
-cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
+colnames(bh_table) <- c("CB measure","R", "p", "Corrected p")
+bh_table[,2:4] <- round(bh_table[,2:4],2)
+cols <- with(bh_table, ifelse(p <= 0.12, 'grey', 'white'))
 
-bh_all_participants <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
-
+bh_table <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table
 
 # Check only on participants with NPS of less then 5 sec ----
 cor_matrix <- all_summary[brms_rt < 5000,c(4,6,2,8, 12, 14:15)]
@@ -423,8 +439,8 @@ for (i in 1:60) {    #### *** rbind not working inside for loop ******
 
 big_data <- data.table::rbindlist(datalist)
 big_data <- merge(big_data, all_summary[,c("id", "brms_quentile")])
-big_data[brms_quentile > 8, rank := "worst"]
-big_data[brms_quentile < 3, rank := "best"]
+big_data[brms_quentile > 8, rank := "Slowest two deciles"]
+big_data[brms_quentile < 3, rank := "Fastest two deciles"]
 big_data[brms_quentile > 2 & brms_quentile < 9, rank := "medium"]
 big_data <- big_data[rank != "medium"]
 big_data <- data.frame(big_data)
@@ -461,22 +477,26 @@ df.summary <- big_data %>%
     mean = mean(cb_acc)
   )
 df.summary
-
-p<- ggplot(df.summary, aes(x=time_sec, y=mean, group=rank, color=rank)) + 
+df.summary <- data.table(df.summary)
+df.summary$time_sec <- as.numeric(as.character(df.summary$time_sec))
+p<- ggplot(df.summary, aes(x=time_sec, y=mean*100, group=rank, color=rank)) + 
   geom_line() +
   geom_point() +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.5,
+  labs(colour="NPS deciles") +
+  geom_errorbar(aes(ymin=100*(mean-sd), ymax=100*(mean+sd)), width=.5,
                 position=position_dodge(0.4))
 
 # Kolmogorov-Smirnov Test to test the significant difference of two cummulative functions
 library(dgof)
-df.summary <- data.table(df.summary)
-ks <- ks.test(df.summary[rank == "best", mean], df.summary[rank == "worst", mean])
 
-p + labs(title="Accumulated CB proportion correct at each time point", x="Time (sec)", y = "% correct")+
-  theme_classic() +
-  annotate("text", x=40, y=0.2, label= paste("d = ", round(as.numeric(ks$statistic), 2), "   p = ", round(as.numeric(ks$p.value), 7)))
+ks <- ks.test(df.summary[rank == "Fastest two deciles", mean], df.summary[rank == "Slowest two deciles", mean])
 
+p + labs(title="Accumulated CB percent correct at each time point", x="Time from onset (sec)", y = "% correct")+
+  theme_classic(base_size = 18) +
+  scale_x_continuous(limits = c(0, NA), breaks = seq(0, 60, by = 5))
+  #annotate("text", x=40, y=0.2, label= paste("d = ", round(as.numeric(ks$statistic), 2), "   p = ", round(as.numeric(ks$p.value), 7)))
+
+max(abs(df.summary[rank == 'Fastest two deciles', mean]-df.summary[rank == 'Slowest two deciles', mean]))
 
 
 # Check correlations ----

@@ -14,7 +14,7 @@ setwd ("C:/Users/yuval/Desktop/lab/Thesis/yuvalharr.github.io")
 dt <- read.csv('28.1.csv')
 dt <- as.data.table(dt)
 
-stimuli <- data.table::fread('stimuli.csv')
+stimuli <- data.table::fread('stimuli_old.csv')
 stimuli$stimulus <- sub('.', '', stimuli$stimulus)
 
 discard_stimuli <- stimuli[stimulus_rank > 10,]
@@ -57,9 +57,7 @@ only_brms <- only_brms[is.na(training),] # discard demo trials
 # Keep only trials with good animation
 only_brms <- only_brms[bProblem == 0 & sProblem < 5]
 
-# keep only subjects with 30 good BRMS trials
-trialCount <- only_brms[, .(trials = .N), by = id]
-trialCount <- trialCount[trials >= 30] 
+
 only_brms <- only_brms[id %in% trialCount$id]
 
 # Keep only correct trials
@@ -97,7 +95,14 @@ setnames(count_id_rows, 1, "id")
 only_animation <-  merge(only_animation, count_id_rows) # add column - number of vadlid trials for each participant
 only_animation$N <- as.numeric(only_animation$N)
 
-cb_acc <- only_animation[,.(cb_acc = sum(success == TRUE, na.rm = TRUE)/N), by = id] # returns cb correct rate
+#cb_acc <- only_animation[,.(cb_acc = sum(success == TRUE, na.rm = TRUE)/N), by =  id] # returns cb correct rate
+
+cb_acc <- only_animation  %>%
+  group_by(id) %>%
+  summarise(
+    n = n(),
+    cb_acc = mean(success, na.rm=T))
+
 cb_acc <- aggregate(cb_acc[,c("cb_acc")], by = list(id = cb_acc$id), FUN = mean)
 cb_rt <- only_animation[success == TRUE, .(cb_rt = mean(rt, na.rm = T)), by = id]
 
@@ -314,13 +319,37 @@ cb_acc <- merge(cb_acc, cb_acc_10s) %>%
   merge(cb_acc_50s)
 
 all_summary <- merge(cb_acc, all_summary)
-cor_matrix <- all_summary[,c(2:9, 12:15)]
-setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
+cor_matrix <- all_summary[,c(3,4,5,6,7,2,8, 12, 14:15)] # for presentation onlysetnames(cor_matrix, 'cb_acc', "cb_acc_60s")
+
+setnames(cor_matrix, 'cb_rt_with_unfinished', "RT")
+setnames(cor_matrix, 'cb_acc_10s', "10 s accuracy")
+setnames(cor_matrix, 'cb_acc_20s', "20 s accuracy")
+setnames(cor_matrix, 'cb_acc_30s', "30 s accuracy")
+setnames(cor_matrix, 'cb_acc_40s', "40 s accuracy")
+setnames(cor_matrix, 'cb_acc_50s', "50 s accuracy")
+setnames(cor_matrix, 'cb_acc', "60 s accuracy")
 
 library(psych)
 library(corrplot)
 cor_results <- corr.test(cor_matrix, adjust = "none")
-corrplot(cor_results$r, p.mat = cor_results$p, insig = "blank", method = "color",addCoef.col = "black", tl.col = "black", order = "alphabet", sig.level = .05)
+corrplot(cor_results$r, p.mat = cor_results$p, type = "upper", insig = "blank", method = "color",addCoef.col = "black", tl.col = "black")
+
+
+# Make a table only for brms rt
+p_for_correction <- cor_results$p["brms_rt",]
+r_for_correction <- cor_results$r["brms_rt",]
+bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
+bh_table <- bh_table[rn == '60 s accuracy', r_for_correction := 0]
+bh_table <- bh_table[rn == '60 s accuracy', p_for_correction := 1]
+
+bh_table <- bh_table[rn != "brms_rt"]
+bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
+colnames(bh_table) <- c("CB measure","R", "p", "Corrected p")
+bh_table[,2:4] <- round(bh_table[,2:4],2)
+cols <- with(bh_table, ifelse(p <= 0.02, 'grey', 'white'))
+
+bh_table <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table
 
 # Make a CB accumalated acc plot based on bRMS groups (with SD whiskers) ----
 d.f_i <- arrange(only_animation,brms_rt,rt)

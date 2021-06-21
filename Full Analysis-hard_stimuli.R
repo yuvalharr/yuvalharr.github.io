@@ -28,6 +28,7 @@ setwd ("C:/Users/yuval/Downloads")
 both_sessions <- fread('both_sessions.csv')
 
 discard_stimuli <- stimuli[stimulus_rank <= 20,]
+#discard_stimuli <- stimuli[stimulus_rank >= 10,]
 dt <- dt[!(stimulus %in% discard_stimuli$stimulus)]
 
 
@@ -244,7 +245,7 @@ d.f_deciles <- d.f_deciles[!is.na(d.f_deciles$success),] # remove unfinished tri
 p <- ggplot( d.f_deciles, aes(rt_sec, ecdf, group = brms_quentile, colour = factor(brms_quentile))) +
   geom_line() + scale_color_brewer(type = "div", palette = "RdBu", name = "bRMS decile", labels = c("1 - fastest NPS", "2", "9", "10 - slowest NPS")) + 
   coord_cartesian(xlim = c(0, 60), ylim = c(0, 1)) +
-  ggtitle('Accumulated CB proportion correct at each time point') +
+  ggtitle('Accumulated CB proportion correct at each time point - 10 hardest stimuli') +
   xlab ('Cut-off point (sec)') + ylab ('% Correct') 
 
 
@@ -291,14 +292,15 @@ cb_acc <- merge(cb_acc, cb_acc_10s) %>%
 all_summary <- merge(cb_acc, all_summary)
 #cor_matrix <- all_summary[,c(2:9, 12:15)]
 all_summary <- data.table(all_summary)
-cor_matrix <- all_summary[,c(10,8,17,4,6,2,20,22:23)] # for presentation only
+cor_matrix <- all_summary[,c(10,4,6,2,20,22:23)] # for presentation only
 
 
-setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
-setnames(cor_matrix, 'brms_rt_1', "NPS 1")
 setnames(cor_matrix, 'brms_rt_both', "NPS both")
-setnames(cor_matrix, 'control_rt_both', "Control RT both")
-setnames(cor_matrix, 'cb_rt_with_unfinished', "CB RT")
+
+setnames(cor_matrix, 'cb_rt_with_unfinished', "RT")
+setnames(cor_matrix, 'cb_acc_20s', "20 s accuracy")
+setnames(cor_matrix, 'cb_acc_40s', "40 s accuracy")
+setnames(cor_matrix, 'cb_acc', "60 s accuracy")
 
 library(psych)
 library(corrplot)
@@ -307,16 +309,20 @@ corrplot(cor_results$r, p.mat = cor_results$p, type = "upper", insig = "blank", 
 
 
 # Make a table only for brms rt
-p_for_correction <- cor_results$p["brms_rt_both",]
-r_for_correction <- cor_results$r["brms_rt_both",]
+p_for_correction <- cor_results$p["NPS both",]
+r_for_correction <- cor_results$r["NPS both",]
 bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
-bh_table <- bh_table[rn != "brms_rt_both"]
+bh_table <- bh_table[rn != "NPS both"]
 bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
-colnames(bh_table) <- c("comparison","R", "p", "corrected_p")
-bh_table[,2:4] <- round(bh_table[,2:4],3)
-cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
+colnames(bh_table) <- c("CB measure","R", "p", "corrected p")
+bh_table[,2:4] <- round(bh_table[,2:4],2)
+cols <- with(bh_table, ifelse(p  <= 0.05, 'grey', 'white'))
 
-bh_all_participants <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table
+
+cor.test(all_summary$brms_rt_both, all_summary$cb_acc_40s)
+
 
 
 # Check only on participants with NPS of less then 5 sec ----
@@ -381,6 +387,7 @@ bh_table[,2:4] <- round(bh_table[,2:4],3)
 cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
 
 bh_less_then_20s <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+
 
 # Make a CB accumalated acc plot based on bRMS groups (with SD whiskers) ----
 d.f_i <- arrange(only_animation,brms_rt_both,rt)
@@ -458,6 +465,7 @@ p + labs(title="Accumulated CB proportion correct at each time point", x="Time (
   annotate("text", x=40, y=0.2, label= paste("d = ", round(as.numeric(ks$statistic), 2), "   p = ", round(as.numeric(ks$p.value), 7)))
 
 
+max(abs(df.summary[rank == 'best', mean]-df.summary[rank == 'worst', mean]))
 
 # Check correlations ----
 

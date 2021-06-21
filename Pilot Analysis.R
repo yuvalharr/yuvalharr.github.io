@@ -54,9 +54,9 @@ only_brms <- only_brms[is.na(training),] # discard demo trials
 only_brms <- only_brms[bProblem == 0 & sProblem < 5]
 
 # keep only subjects with 30 good BRMS trials
-trialCount <- only_brms[, .(trials = .N), by = id]
-trialCount <- trialCount[trials >= 30] 
-only_brms <- only_brms[id %in% trialCount$id]
+#trialCount <- only_brms[, .(trials = .N), by = id]
+#trialCount <- trialCount[trials >= 30] 
+#only_brms <- only_brms[id %in% trialCount$id]
 
 # Keep only correct trials
 only_brms <- only_brms[acc == 1]
@@ -122,7 +122,26 @@ p + geom_jitter(shape=16, position=position_jitter(0.03)) +
 h = hist(all_summary$brms_rt, breaks = c(seq(from = 0, to = 30000, by = 1000)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
 h$density = h$counts/sum(h$counts)*100
 plot(h,freq=FALSE, main = "NPS distribution", xlab = "NPS (ms)", ylab = "% of participants")
-abline(v = mean(all_summary$brms_rt), col = 'red')
+#abline(v = mean(all_summary$brms_rt), col = 'red')
+lines(c(quantile(all_summary$brms_rt, .2), quantile(all_summary$brms_rt, .2)), c(0, 36), col = "blue", lwd = 2, lty = 22)
+lines(c(quantile(all_summary$brms_rt, .8), quantile(all_summary$brms_rt, .8)), c(0, 36), col = "blue", lwd = 2, lty = 22)
+lines(c(quantile(all_summary$brms_rt, .5), quantile(all_summary$brms_rt, .5)), c(0, 36), col = "red", lwd = 2, lty = 1)
+
+
+mean(all_summary$brms_rt)
+sd(all_summary$brms_rt)
+
+# Histograms for thesis ----
+ggplot(all_summary, aes(x = brms_rt)) +
+  geom_histogram(bins = 20, color = "black", fill = "white") +
+  theme_gray((base_size = 14)) +
+  geom_vline(aes(xintercept=mean(brms_rt)),
+             color="blue", linetype="dashed", size=1) +
+  aes(y=stat(count)/sum(stat(count))) + 
+  scale_y_continuous(labels = scales::percent, limits = c(0,0.25)) +
+  labs(title="", x="NPS (ms)", y = "% of participants")
+
+
 
 p2 <- ggplot(cb_summary, aes(x=as.factor(1), y=cb_rt)) + 
   geom_violin()
@@ -139,13 +158,15 @@ h = hist(cb_summary$cb_rt_with_unfinished/1000, breaks = c(seq(from = 0, to = 30
 h$density = h$counts/sum(h$counts)*100
 plot(h,freq=FALSE, main = "CB scores distribution", xlab = "Average CB rt (sec)", ylab = "% of participants")
 abline(v = mean(cb_summary$cb_rt_with_unfinished/1000), col = 'red')
+mean(all_summary$cb_rt_with_unfinished)
+sd(all_summary$cb_rt_with_unfinished)
+
 
 # histogram of average CB RT *not* including unanswered trials
 h = hist(cb_summary$cb_rt/1000, breaks = c(seq(from = 0, to = 30, by = 2.5)), plot = F) # or hist(x,plot=FALSE) to avoid the plot of the histogram
 h$density = h$counts/sum(h$counts)*100
 plot(h,freq=FALSE)
 abline(v = mean(cb_summary$cb_rt/1000), col = 'red')
-
 
 # Connection between CB acc and CB RT
 cor.test(all_summary$cb_rt, all_summary$cb_rt_with_unfinished)
@@ -157,6 +178,8 @@ ggplot(all_summary, aes(x = cb_rt, y = cb_rt_with_unfinished)) +
   #scale_x_continuous(breaks = seq(0, 30000, by = 10000))
   scale_x_continuous(expand = c(0, 500), limits = c(0, NA), breaks = seq(0, 30000, by = 10000)) + 
   scale_y_continuous(expand = c(0, 500), limits = c(0, NA), breaks = seq(0, 30000, by = 10000))
+
+
 
 cor.test(all_summary$cb_rt, all_summary$cb_acc)
 ggplot(all_summary, aes(x = cb_rt, y = cb_acc)) +
@@ -174,6 +197,10 @@ all_summary$brms_quentile <- ntile(all_summary$brms_rt, 10)
 
 only_animation <- merge(only_animation, all_summary[, c("id","brms_quentile")], by="id")
 
+cor.test(all_summary[brms_quentile < 9, cb_rt_with_unfinished], all_summary[brms_quentile < 9, brms_rt])
+ggplot(all_summary[brms_quentile < 9], aes(x = brms_rt, y = cb_rt_with_unfinished)) +
+  geom_point() +
+  geom_smooth(method='lm')
 
 # MAKE CB CUMULATIVE % CORRECT GRAPH PER SUBJECT ----
 
@@ -310,93 +337,125 @@ cb_acc <- merge(cb_acc, cb_acc_10s) %>%
 all_summary <- merge(cb_acc, all_summary)
 #cor_matrix <- all_summary[,c(2:9, 12:15)]
 all_summary <- data.table(all_summary)
-cor_matrix <- all_summary[,c(4,6,2,8, 12, 14:15)] # for presentation only
+cor_matrix <- all_summary[,c(3,4,5,6,7,2,8, 12, 14:15,9)] # for presentation only
+
+mean(all_summary$cb_acc_10s)
+sd(all_summary$cb_acc_10s)
+mean(all_summary$cb_acc_20s)
+sd(all_summary$cb_acc_20s)
+mean(all_summary$cb_acc_30s)
+sd(all_summary$cb_acc_30s)
+mean(all_summary$cb_acc_40s)
+sd(all_summary$cb_acc_40s)
+mean(all_summary$cb_acc_50s)
+sd(all_summary$cb_acc_50s)
+mean(all_summary$cb_acc)
+sd(all_summary$cb_acc)
 
 
-setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
-setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
+
+setnames(cor_matrix, 'cb_rt_with_unfinished', "RT")
+setnames(cor_matrix, 'cb_acc_10s', "10 s accuracy")
+setnames(cor_matrix, 'cb_acc_20s', "20 s accuracy")
+setnames(cor_matrix, 'cb_acc_30s', "30 s accuracy")
+setnames(cor_matrix, 'cb_acc_40s', "40 s accuracy")
+setnames(cor_matrix, 'cb_acc_50s', "50 s accuracy")
+setnames(cor_matrix, 'cb_acc', "60 s accuracy")
 
 library(psych)
 library(corrplot)
 cor_results <- corr.test(cor_matrix, adjust = "none")
 corrplot(cor_results$r, p.mat = cor_results$p, type = "upper", insig = "blank", method = "color",addCoef.col = "black", tl.col = "black")
-
-
 # Make a table only for brms rt
 p_for_correction <- cor_results$p["brms_rt",]
 r_for_correction <- cor_results$r["brms_rt",]
 bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
 bh_table <- bh_table[rn != "brms_rt"]
 bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
-colnames(bh_table) <- c("comparison","R", "p", "corrected_p")
+colnames(bh_table) <- c("CB measure","R", "p", "Corrected p")
 bh_table[,2:4] <- round(bh_table[,2:4],3)
-cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
+cols <- with(bh_table, ifelse(p <= 0.05, 'grey', 'white'))
 
-bh_all_participants <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+
+cor.test(all_summary[, alpha], all_summary[, distance])
+pcor.test(x=all_summary[,brms_rt], y=all_summary[, alpha], z=all_summary[, distance]) # account for distance
 
 
-# Check only on participants with NPS of less then 5 sec ----
-cor_matrix <- all_summary[brms_rt < 5000,c(4,6,2,8, 12, 14:15)]
-setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
-setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
-cor_results <- corr.test(cor_matrix, adjust = "BH")
-corrplot(cor_results$r, p.mat = cor_results$p, insig = "blank", method = "color",addCoef.col = "black", tl.col = "black", title = "Cor plot of participants bellow NPS of 5 sec")
 
-ggplot(cor_matrix, aes(x = brms_rt, y = beta)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  ggtitle("Correlation between NPS and beta - only on NPS < 5 sec")+
-  stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
+
+
+
+# cor matrix without worst participatns ----
+cor_matrix_without_worst <- all_summary[brms_quentile < 9,c(3,4,5,6,7,2,8, 12, 14:15)] # for presentation only
+
+setnames(cor_matrix_without_worst, 'cb_rt_with_unfinished', "RT")
+setnames(cor_matrix_without_worst, 'cb_acc_10s', "10 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_20s', "20 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_30s', "30 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_40s', "40 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_50s', "50 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc', "60 s accuracy")
+
+library(psych)
+library(corrplot)
+cor_results_without_worst <- corr.test(cor_matrix_without_worst, adjust = "none")
+corrplot(cor_results$r, p.mat = cor_results$p, type = "upper", insig = "blank", method = "color",addCoef.col = "black", tl.col = "black")
 
 # Make a table only for brms rt
-p_for_correction <- cor_results$p["brms_rt",]
-r_for_correction <- cor_results$r["brms_rt",]
-bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
-bh_table <- bh_table[rn != "brms_rt"]
-bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
-colnames(bh_table) <- c("comparison","R", "p", "corrected_p")
-bh_table[,2:4] <- round(bh_table[,2:4],3)
-cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
+p_for_correction <- cor_results_without_worst$p["brms_rt",]
+r_for_correction <- cor_results_without_worst$r["brms_rt",]
+bh_table_without_worst <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
+bh_table_without_worst <- bh_table_without_worst[rn != "brms_rt"]
+bh_table_without_worst$corrected_p <- p.adjust(bh_table_without_worst$p, method = "BH")
+colnames(bh_table_without_worst) <- c("CB measure","R", "p", "Corrected p")
+bh_table_without_worst[,2:4] <- round(bh_table_without_worst[,2:4],2)
+cols <- with(bh_table_without_worst, ifelse(p < 0.01, 'grey', 'white')) # did this because can't read 'Corrected p'
 
-bh_less_then_5s <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table_without_worst <- htmlTable(as.matrix(bh_table_without_worst), col.rgroup = cols)
+bh_table_without_worst
 
-# Check only on participants with NPS of less then 10 sec ----
-cor_matrix <- all_summary[brms_rt < 10000,c(4,6,2,8, 12, 14:15)]
-setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
-setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
-cor_results <- corr.test(cor_matrix, adjust = "hoch")
-corrplot(cor_results$r, p.mat = cor_results$p, insig = "blank", method = "color",addCoef.col = "black", tl.col = "black", title = "Cor plot of participants bellow NPS of 10 sec")
 
-# Make a table only for brms rt
-p_for_correction <- cor_results$p["brms_rt",]
-r_for_correction <- cor_results$r["brms_rt",]
-bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
-bh_table <- bh_table[rn != "brms_rt"]
-bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
-colnames(bh_table) <- c("comparison","R", "p", "corrected_p")
-bh_table[,2:4] <- round(bh_table[,2:4],3)
-cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
+# cor matrix without best participatns ----
+cor_matrix_without_worst <- all_summary[brms_quentile > 2,c(3,4,5,6,7,2,8, 12, 14:15)] # for presentation only
 
-bh_less_then_10s <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+setnames(cor_matrix_without_worst, 'cb_rt_with_unfinished', "RT")
+setnames(cor_matrix_without_worst, 'cb_acc_10s', "10 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_20s', "20 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_30s', "30 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_40s', "40 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc_50s', "50 s accuracy")
+setnames(cor_matrix_without_worst, 'cb_acc', "60 s accuracy")
 
-# Check only on participants with NPS of less then 20 sec ----
-cor_matrix <- all_summary[brms_rt < 20000,c(4,6,2,8, 12, 14:15)]
-setnames(cor_matrix, 'cb_acc', "cb_acc_60s")
-setnames(cor_matrix, 'cb_rt_with_unfinished', "cb_rt")
-cor_results <- corr.test(cor_matrix, adjust = "hoch")
-corrplot(cor_results$r, p.mat = cor_results$p, insig = "blank", method = "color",addCoef.col = "black", tl.col = "black", title = "Cor plot of participants bellow NPS of 20 sec")
+library(psych)
+library(corrplot)
+cor_results_without_worst <- corr.test(cor_matrix_without_worst, adjust = "none")
+corrplot(cor_results$r, p.mat = cor_results$p, type = "upper", insig = "blank", method = "color",addCoef.col = "black", tl.col = "black")
 
 # Make a table only for brms rt
-p_for_correction <- cor_results$p["brms_rt",]
-r_for_correction <- cor_results$r["brms_rt",]
-bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
-bh_table <- bh_table[rn != "brms_rt"]
-bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
-colnames(bh_table) <- c("comparison","R", "p", "corrected_p")
-bh_table[,2:4] <- round(bh_table[,2:4],3)
-cols <- with(bh_table, ifelse(corrected_p <= 0.05, 'grey', 'white'))
+p_for_correction <- cor_results_without_worst$p["brms_rt",]
+r_for_correction <- cor_results_without_worst$r["brms_rt",]
+bh_table_without_worst <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
+bh_table_without_worst <- bh_table_without_worst[rn != "brms_rt"]
+bh_table_without_worst$corrected_p <- p.adjust(bh_table_without_worst$p, method = "BH")
+colnames(bh_table_without_worst) <- c("CB measure","R", "p", "Corrected p")
+bh_table_without_worst[,2:4] <- round(bh_table_without_worst[,2:4],2)
+cols <- with(bh_table_without_worst, ifelse(p < 0.05, 'grey', 'white')) # did this because can't read 'Corrected p'
 
-bh_less_then_20s <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table_without_worst <- htmlTable(as.matrix(bh_table_without_worst), col.rgroup = cols)
+bh_table_without_worst
+
+
+
+
+
+
+cor.test(all_summary[, alpha], all_summary[, distance])
+pcor.test(x=all_summary[,brms_rt], y=all_summary[, alpha], z=all_summary[, distance]) # account for distance
+
+
+
+
 
 # Make a CB accumalated acc plot based on bRMS groups (with SD whiskers) ----
 d.f_i <- arrange(only_animation,brms_rt,rt)
@@ -419,8 +478,8 @@ for (i in 1:60) {    #### *** rbind not working inside for loop ******
 
 big_data <- data.table::rbindlist(datalist)
 big_data <- merge(big_data, all_summary[,c("id", "brms_quentile")])
-big_data[brms_quentile > 8, rank := "worst"]
-big_data[brms_quentile < 3, rank := "best"]
+big_data[brms_quentile > 8, rank := "Slowest two deciles"]
+big_data[brms_quentile < 3, rank := "Fastest two deciles"]
 big_data[brms_quentile > 2 & brms_quentile < 9, rank := "medium"]
 big_data <- big_data[rank != "medium"]
 big_data <- data.frame(big_data)
@@ -457,25 +516,48 @@ df.summary <- big_data %>%
     mean = mean(cb_acc)
   )
 df.summary
-
-p<- ggplot(df.summary, aes(x=time_sec, y=mean, group=rank, color=rank)) + 
+df.summary <- data.table(df.summary)
+df.summary$time_sec <- as.numeric(as.character(df.summary$time_sec))
+p<- ggplot(df.summary, aes(x=time_sec, y=mean*100, group=rank, color=rank)) + 
   geom_line() +
   geom_point() +
-  geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.5,
+  labs(colour="NPS deciles") +
+  geom_errorbar(aes(ymin=100*(mean-sd), ymax=100*(mean+sd)), width=.5,
                 position=position_dodge(0.4))
 
 # Kolmogorov-Smirnov Test to test the significant difference of two cummulative functions
 library(dgof)
-df.summary <- data.table(df.summary)
-ks <- ks.test(df.summary[rank == "best", mean], df.summary[rank == "worst", mean])
 
-p + labs(title="Accumulated CB proportion correct at each time point", x="Time (sec)", y = "% correct")+
-  theme_classic() +
-  annotate("text", x=40, y=0.2, label= paste("d = ", round(as.numeric(ks$statistic), 2), "   p = ", round(as.numeric(ks$p.value), 7)))
+ks <- ks.test(df.summary[rank == "Fastest two deciles", mean], df.summary[rank == "Slowest two deciles", mean])
+
+p + labs(title="Accumulated CB percent correct at each time point", x="Time from onset (sec)", y = "% correct")+
+  theme_classic(base_size = 18) +
+  scale_x_continuous(limits = c(0, NA), breaks = seq(0, 60, by = 5))
+#annotate("text", x=40, y=0.2, label= paste("d = ", round(as.numeric(ks$statistic), 2), "   p = ", round(as.numeric(ks$p.value), 7)))
+
+max(abs(df.summary[rank == 'Fastest two deciles', mean]-df.summary[rank == 'Slowest two deciles', mean]))
 
 
 
 # Check correlations ----
+ggplot(all_summary, aes(x = brms_rt, y = alpha)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  stat_cor(method="pearson", color = 'red', label.y.npc="bottom", label.x.npc = "center", size = 6 ) +
+  theme_gray(base_size = 24) +
+  labs(x="NPS (ms)", y="alpha", title = "a")
+
+ggplot(all_summary, aes(x = brms_rt, y = cb_acc*100)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  ggtitle("b")+
+  stat_cor(method="pearson", color = 'red', label.y.npc="bottom", label.x.npc = "center", size = 6 ) +
+  theme_gray(base_size = 24) +
+  labs(x="NPS (ms)", y="60 s accuracy (%)", title = "b")
+
+require(gridExtra)
+require(ggpubr)
+grid.arrange(p1, p2, ncol=1) 
 
 cor.test(all_summary$alpha, all_summary$beta)
 ggplot(all_summary, aes(x = alpha, y = beta)) +
@@ -537,6 +619,7 @@ ggplot(all_summary, aes(x = brms_quentile, y = cb_rt_with_unfinished)) +
 
 
 
+
 # Check correlation of BRMS and CB between deciles ----
 all_summary <- data.table(all_summary)
 cor.test(all_summary[brms_rt > 20000]$brms_rt, all_summary[brms_rt > 20000]$cb_rt_with_unfinished)
@@ -556,28 +639,25 @@ ggplot(all_summary[brms_quentile > 8 | brms_quentile < 3], aes(x = brms_rt, y = 
 
 
 
+
 # print example inverse exponantial curves ----
 # First curve is plotted
 cc <- scales::seq_gradient_pal("blue", "red", "Lab")(seq(0,1,length.out=100))
 
-curve(1*exp(-2/x), 0, 60, col = cc[1])
-curve(1*exp(-4/x), 0, 60, col = cc[20], add = T)
-curve(1*exp(-6/x), 0, 60, col = cc[40], add = T)
-curve(1*exp(-8/x), 0, 60, col = cc[60], add = T)
-curve(1*exp(-10/x), 0, 60, col = cc[80], add = T)
-curve(1*exp(-12/x), 0, 60, col = cc[100], add = T)
-legend(40, 0.6, legend=c("?? = -2", "?? = -4", "?? = -6", "?? = -8", "?? = -10", "?? = -12"),
-       col=c(cc[1], cc[20], cc[40], cc[60], cc[80], cc[100]), lty=1, cex=0.8)
+curve(1.16*exp(-4.24/x), 0, 60, col = cc[1],xlab = "Cut-off point (s)", ylab = "% correct", ylim = c(0,1))
+curve(1.16*exp(-6.84/x), 0, 60, col = cc[50], add = T)
+curve(1.16*exp(-9.44/x), 0, 60, col = cc[100], add = T)
+abline(h = 1, col="black", lwd=2, lty=2)
+legend(40, 0.6, legend=c("beta = +1 SD", "beta = Mean", "beta = -1 SD"),
+       col=c(cc[1], cc[50], cc[100]), lty=1, cex=0.8, xjust = 0.3, yjust = 1)
 
-curve(1.5*exp(-5/x), 0, 60, col = cc[1])
-curve(1.4*exp(-5/x), 0, 60, col = cc[20], add = T)
-curve(1.3*exp(-5/x), 0, 60, col = cc[40], add = T)
-curve(1.2*exp(-5/x), 0, 60, col = cc[60], add = T)
-curve(1.1*exp(-5/x), 0, 60, col = cc[80], add = T)
-curve(1*exp(-5/x), 0, 60, col = cc[100], add = T)
-abline(h = 1, col="black", lwd=1, lty=2)
-legend(40, 0.65, legend=c("?? = 1.5", "?? = 1.4", "?? = 1.3", "?? = 1.2", "?? = 1.1", "?? = 1"),
-       col=c(cc[1], cc[20], cc[40], cc[60], cc[80], cc[100]), lty=1, cex=0.8)
+curve(1.32*exp(-6.84/x), 0, 60, col = cc[1], xlab = "Cut-off point (s)", ylab = "% correct", ylim = c(0,1), main = 'a')
+curve(1.16*exp(-6.84/x), 0, 60, col = cc[50], add = T)
+curve(1*exp(-6.84/x), 0, 60, col = cc[100], add = T)
+abline(h = 1, col="black", lwd=2, lty=2)
+legend(40, 0.65, legend=c("alpha = +1 SD", "alpha = Mean", "alpha = -1 SD"),
+       col=c(cc[1], cc[50], cc[100]), lty=1, cex=0.8, xjust = 0.3, yjust = 1)
+
 
 
 
@@ -630,12 +710,13 @@ dems[, c("driving_abilities","driver_accidents"):=NULL]
 # remove 9s now
 is.na(dems) <- dems == 9
 
-dems$total_hsp <- rowMeans(dems[,7:18], na.rm = T, dims = 1)
+dems$total_hsp <- rowMeans(dems[,7:18], na.rm = T, dims = 1) + 1 # add 1 because scale starts at 1 and not 0
 
 # merge dems with exp data
 all_summary <- merge(dems, all_summary)
 all_summary <- all_summary[,pedestrian_accidents := as.numeric(pedestrian_accidents)] # make numeric
 all_summary[pedestrian_accidents > 10, pedestrian_accidents := NA] # remove people who said more then 10 pedestrian accidents
+
 
 # dems histograms ----
 # HSP
@@ -661,11 +742,48 @@ plot(h3, main = "Car Accidents", freq = F)
 plot(h4, main = "Reported Driving Abilities", freq = F)
 par(mfrow=c(1,1)) # reset back to 1X1 plot
 
+
 # make questionnaires and behavioral correlations matrix ----
-cor_matrix <- all_summary[,c('age', 'total_hsp','driving_accidents','driving_ability','pedestrian_accidents', 'brms_rt', 'cb_rt_with_unfinished', 'cb_acc_20s', 'cb_acc_40s', 'alpha', 'beta')]
-cor_results <- corr.test(cor_matrix, adjust = "hoch")
+cor_matrix <- all_summary[,c( 'brms_rt', 'total_hsp','driving_ability','driving_accidents','pedestrian_accidents', 'age')]
+
+setnames(cor_matrix, 'total_hsp', "HSP score")
+setnames(cor_matrix, 'driving_accidents', "Driving accidents")
+setnames(cor_matrix, 'driving_ability', "Driving ability self-rating")
+setnames(cor_matrix, 'pedestrian_accidents', "Pedestrian accidents")
+
+cor_matrix$Accidents <- rowSums(cor_matrix[,c("Driving accidents", "Pedestrian accidents")], na.rm=TRUE) # make sum of accidents
+cor_matrix[Accidents > 9, Accidents := NA]
+
+cor_results <- corr.test(cor_matrix, adjust = "non")
 corrplot(cor_results$r, p.mat = cor_results$p, method = "color", tl.col = "black", addCoef.col = "black", insig = "blank")
 
+
+
+library(psych)
+library(corrplot)
+
+
+
+# Make a table only for brms rt
+p_for_correction <- cor_results$p["brms_rt",]
+r_for_correction <- cor_results$r["brms_rt",]
+bh_table <- data.table(cbind(r_for_correction, p_for_correction), keep.rownames = T)
+bh_table <- bh_table[rn != "brms_rt"]
+bh_table <- bh_table[rn != "Driving accidents"]
+bh_table <- bh_table[rn != "Pedestrian accidents"]
+
+bh_table$corrected_p <- p.adjust(bh_table$p, method = "BH")
+colnames(bh_table) <- c("Measure","R", "p", "Corrected p")
+bh_table[,2:4] <- round(bh_table[,2:4],3)
+cols <- with(bh_table, ifelse('Corrected p' <= 0.05, 'grey', 'white'))
+
+bh_table <- htmlTable(as.matrix(bh_table), col.rgroup = cols)
+bh_table
+
+pcor.test(x=all_summary[,brms_rt], y=all_summary[, Accidents], z=all_summary[, age]) # account for distance
+
+
+# correlation plots
 cor.test(all_summary$brms_rt, all_summary$total_hsp)
 ggplot(all_summary, aes(x = brms_rt, y = total_hsp)) +
   geom_point() +
@@ -687,6 +805,7 @@ ggplot(all_summary, aes(x = brms_rt, y = driving_accidents)) +
   ggtitle("Correlation between NPS and driving accidents")+
   stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
 
+
 # Look at CB stimuli ----
 
 # Mean and SD of every stimulus
@@ -706,8 +825,8 @@ ggplot(stimuli, aes(x = stimulus_mean, y = sd)) +
 # plots of stimuli rt by divided for 'best' and 'worse' NPS pps
 temp <- merge(only_animation, stimuli, by = 'stimulus')
 temp <- temp[brms_quentile > 8 | brms_quentile < 3]
-temp <- temp[brms_quentile > 8, brms_group := 'worst']
-temp <- temp[brms_quentile < 3, brms_group := 'best']
+temp <- temp[brms_quentile > 8, brms_group := 'Slowest two deciles']
+temp <- temp[brms_quentile < 3, brms_group := 'Fastest two deciles']
 temp <- temp[stimulus_rank < 11 | stimulus_rank > 20,]
 temp$stimulus_rank <- as.factor(temp$stimulus_rank)
 temp$brms_group <- as.factor(temp$brms_group)
@@ -722,14 +841,50 @@ p<-ggplot(temp, aes(reorder(stimulus,rt,na.rm = TRUE), y=rt, fill = brms_group))
   
 p
 
+temp$rt <- temp$rt/1000
 require(ggpubr)
 p <- ggboxplot(temp, x = "brms_group", y = "rt",
                color = "brms_group",
                add = "jitter",
                facet.by = "stimulus_rank", short.panel.labs = T)
 # Use only p.format as label. Remove method name.
-p + stat_compare_means(label = "p.format")
+p <- p + labs(x="", y="DT (s)", title = "CB stimuli Detection Times by NPS deciles") + theme_bw(base_size = 16)
 
+
+ggpar(p, legend.title = "NPS deciles", legend = "right")
+
+
+# CB STIMULI HISTOGRAM
+ggplot(stimuli, aes(x = stimulus_mean/1000)) +
+  geom_histogram(bins = 30, color = "black", fill = "white") +
+  theme_gray((base_size = 14)) +
+  geom_vline(aes(xintercept=mean(stimulus_mean/1000)),
+             color="blue", linetype="dashed", size=1) +
+  aes(y=stat(count)/sum(stat(count))) + 
+  scale_y_continuous(labels = scales::percent, limits = c(0,0.25)) +
+  scale_x_continuous(limits = c(0,50)) +
+  labs(title="", x="Average Detection Time (s)", y = "% of CB stimuli")
+
+
+# T test for finding difference between best and worst participants - in every group of CB stimuli
+
+# NOT RUN {
+require(graphics)
+
+temp <- data.table(temp)
+temp$stimulus_rank <- as.numeric(as.character(temp$stimulus_rank))
+## Classical example: Student's sleep data
+plot(rt ~ brms_group, data = temp[stimulus_rank > 20])
+## Formula interface
+t.test(rt ~ brms_group, data = temp[stimulus_rank > 20])
+sd(temp[stimulus_rank > 20 & brms_group == 'Fastest two deciles', rt])
+sd(temp[stimulus_rank > 20 & brms_group == 'Slowest two deciles', rt])
+## Classical example: Student's sleep data
+plot(rt ~ brms_group, data = temp[stimulus_rank < 11])
+## Formula interface
+t <- t.test(rt ~ brms_group, data = temp[stimulus_rank < 11])
+sd(temp[stimulus_rank < 11 & brms_group == 'Fastest two deciles', rt])
+sd(temp[stimulus_rank < 11 & brms_group == 'Slowest two deciles', rt])
 
 # Make Mean rt deciles
 stimuli$stimuli_decile <- ntile(stimuli$stimulus_mean, 10)  
@@ -1037,5 +1192,7 @@ cleanData <- function(x, excludeSubjects = NULL) {
   return(x)
 }
 
+dems <- merge(dems, all_summary[,c('id', 'brms_rt')], by = 'id')
 
+write.csv(dems,"C:/Users/yuval/Downloads/pilot_dems.csv", row.names = FALSE)
 

@@ -73,8 +73,9 @@ unfinished_2 <- first[!(id %in% finished_exp_2)] # unfinished experiments are sa
 second <- second[id %in% finished_exp_2,] # keep only finished experiments
 
 # count participants
-unique(first$id)
-unique(second$id)
+length(unique(first$id))
+length(unique(second$id))
+
 
 # Extract viewing distance
 first[, view_dist_mm:=as.double(view_dist_mm)] # make distance column as double instead of string
@@ -126,11 +127,7 @@ only_brms_2 <- only_brms_2[bProblem == 0 & sProblem < 5]
 both_brms <- rbind(only_brms_1, only_brms_2, fill = T) # make one big dt for both NPS
 
 # keep only subjects with 30 good BRMS trials
-trialCount_1 <- only_brms_1[, .(trials = .N), by = id]
-trialCount_1 <- trialCount_1[trials >= 30] 
 only_brms_1 <- only_brms_1[id %in% trialCount_1$id]
-trialCount_2 <- only_brms_2[, .(trials = .N), by = id]
-trialCount_2 <- trialCount_2[trials >= 30] 
 only_brms_2 <- only_brms_2[id %in% trialCount_2$id]
 
 trialCount_both <- both_brms[, .(trials = .N), by = id]
@@ -373,6 +370,130 @@ ggplot(all_brms_summary, aes(x = time_diff, y = abs(control_rt_1-control_rt_2)))
   stat_cor(method="pearson", color = 'red', label.y.npc="top", label.x.npc = "center" )
 
 
+# take questions from exp 2a ----
+only_quest <- first[trial_type == 'survey-text' | trial_type == 'survey-likert' | trial_type == 'survey-multi-choice'] # switch from first to second to choose
+only_quest <- only_quest[id %in% all_brms_summary$id]
+only_quest$responses <- gsub(':",', ':9,', only_quest$responses)
+only_quest$responses <- gsub('\"\"', '\"', only_quest$responses)
+only_quest$responses <- gsub(':\"}', ':\"\"}', only_quest$responses)
+
+# keep only relevant columns
+only_quest <- data.frame(only_quest)
+homogenous = apply(only_quest, 2, function(var) length(unique(var)) == 1) #tag columns without any variance
+only_quest <- only_quest[, !homogenous] # remove them
+
+# extract values
+only_quest <- data.table(only_quest)
+
+only_quest[internal_node_id == "0.0-15.0-1.0", gender := fromJSON(responses)$'gender', by = id]
+only_quest[internal_node_id == "0.0-15.0-1.0", hand := fromJSON(responses)$'hand', by = id]
+only_quest[internal_node_id == "0.0-15.0-1.0", native := fromJSON(responses)$'native', by = id]
+only_quest[internal_node_id == "0.0-15.0-2.0", age := fromJSON(responses)$'age', by = id]
+only_quest[internal_node_id == "0.0-15.0-3.0", add := fromJSON(responses)$'add', by = id]
+
+gender_dt <- only_quest[!is.na(gender), list(id, gender, hand, native)]
+age_dt <- only_quest[!is.na(age), list(id, age)]
+
+dems <- merge(gender_dt, age_dt)
+
+length(dems[gender == 'Female', id])
+dems[,age := as.numeric(as.character(age))]
+mean(dems[,age])
+sd(dems[,age])
+max(dems[,age])
+min(dems[,age])
+
+
+# merge dems with exp data
+all_brms_summary <- merge(dems, all_brms_summary)
+
+length(all_brms_summary[!is.na(brms_rt_1),id])
+mean(all_brms_summary[!is.na(brms_rt_1),brms_rt_1])
+sd(all_brms_summary[!is.na(brms_rt_1),brms_rt_1])
+
+length(all_brms_summary[!is.na(brms_rt_2),id])
+mean(all_brms_summary[!is.na(brms_rt_2),brms_rt_2])
+sd(all_brms_summary[!is.na(brms_rt_2),brms_rt_2])
+
+
+# take questions from exp 2b ----
+
+only_quest <- second[trial_type == 'survey-text' | trial_type == 'survey-likert' | trial_type == 'survey-multi-choice'] # switch from first to second to choose
+only_quest <- only_quest[id %in% all_brms_summary$id]
+only_quest$responses <- gsub(':",', ':9,', only_quest$responses)
+only_quest$responses <- gsub('\"\"', '\"', only_quest$responses)
+only_quest$responses <- gsub(':\"}', ':\"\"}', only_quest$responses)
+
+# keep only relevant columns
+only_quest <- data.frame(only_quest)
+homogenous = apply(only_quest, 2, function(var) length(unique(var)) == 1) #tag columns without any variance
+only_quest <- only_quest[, !homogenous] # remove them
+
+# extract values
+only_quest <- data.table(only_quest)
+
+only_quest[internal_node_id == "0.0-12.0-1.0", q1 := fromJSON(responses)$'q1', by = id]
+only_quest[internal_node_id == "0.0-12.0-1.0", q2 := fromJSON(responses)$'q2', by = id]
+only_quest[internal_node_id == "0.0-12.0-1.0", q3 := fromJSON(responses)$'q3', by = id]
+only_quest[internal_node_id == "0.0-12.0-1.0", q4 := fromJSON(responses)$'q4', by = id]
+only_quest[internal_node_id == "0.0-12.0-2.0", q5 := fromJSON(responses)$'q5', by = id]
+only_quest[internal_node_id == "0.0-12.0-2.0", q6 := fromJSON(responses)$'q6', by = id]
+only_quest[internal_node_id == "0.0-12.0-2.0", q7 := fromJSON(responses)$'q7', by = id]
+only_quest[internal_node_id == "0.0-12.0-2.0", q8 := fromJSON(responses)$'q8', by = id]
+only_quest[internal_node_id == "0.0-12.0-3.0", q9 := fromJSON(responses)$'q9', by = id]
+only_quest[internal_node_id == "0.0-12.0-3.0", q10 := fromJSON(responses)$'q10', by = id]
+only_quest[internal_node_id == "0.0-12.0-3.0", q11 := fromJSON(responses)$'q11', by = id]
+only_quest[internal_node_id == "0.0-12.0-3.0", q12 := fromJSON(responses)$'q12', by = id]
+
+only_quest[internal_node_id == "0.0-12.0-4.0", driver := fromJSON(responses)$'is_driver', by = id]
+only_quest[internal_node_id == "0.0-13.0-0.0", driving_abilities := responses, by = id]
+only_quest[internal_node_id == "0.0-13.0-1.0", driver_accidents := responses, by = id]
+only_quest[internal_node_id == "0.0-14.0-0.0", pedestrian_accidents := fromJSON(responses), by = id]
+
+
+qa_dt <- only_quest[!is.na(q1), list(id, q1, q2, q3, q4)]
+qb_dt <- only_quest[!is.na(q5), list(id, q5, q6, q7, q8)]
+qc_dt <- only_quest[!is.na(q9), list(id, q9, q10, q11, q12)]
+
+driver_dt <- only_quest[!is.na(driver), list(id, driver)]
+abilities_dt <- only_quest[!is.na(driving_abilities), list(id, driving_abilities)]
+driver_accidents_dt <- only_quest[!is.na(driver_accidents), list(id, driver_accidents)]
+pedestrian_accidents_dt <- only_quest[!is.na(pedestrian_accidents), list(id, pedestrian_accidents)]
+
+dems <- merge(qa_dt, qb_dt, all = T) %>%
+  merge(qc_dt, all = T) %>%
+  merge(driver_dt, all = T)  %>%
+  merge(abilities_dt, all = T) %>%
+  merge(driver_accidents_dt, all = T) %>%
+  merge(pedestrian_accidents_dt, all = T)
+
+
+length(dems[gender == 'Female', id])
+dems[,age := as.numeric(as.character(age))]
+mean(dems[,age])
+sd(dems[,age])
+max(dems[,age])
+min(dems[,age])
+
+
+dems[!(is.na(driving_abilities)), c('driving_ability', 'driving_accidents') := 
+       list(as.numeric(fromJSON(driving_abilities)), as.numeric(fromJSON(driver_accidents))), 
+     by = id]
+dems[, c("driving_abilities","driver_accidents"):=NULL]
+
+# remove 9s now
+is.na(dems) <- dems == 9
+dems <- dems[,pedestrian_accidents := as.numeric(pedestrian_accidents)] # make numeric
+dems <- dems[,driving_accidents := as.numeric(driving_accidents)] # make numeric
+
+dems$total_hsp <- rowMeans(dems[,2:13], na.rm = T, dims = 1)
+dems$total_accidents <- rowSums(dems[, c('driving_accidents', 'pedestrian_accidents')], na.rm = T)
+
+# merge dems with exp data
+all_brms_summary <- merge(dems, all_brms_summary, all = T)
+all_brms_summary[pedestrian_accidents > 10, pedestrian_accidents := NA] # remove people who said more then 10 pedestrian accidents
+
+
+
 # write summary csv
 write.csv(all_brms_summary,"C:/Users/yuval/Downloads/both_sessions.csv", row.names = FALSE)
-
